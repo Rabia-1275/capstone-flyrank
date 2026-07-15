@@ -6,7 +6,8 @@ A frontend AI engineering capstone project built during my FlyRank internship, f
 
 - React
 - Tailwind CSS
-- Claude Code (AI-assisted development)
+- Vite
+- Cursor (AI-assisted development)
 
 ## Status
 
