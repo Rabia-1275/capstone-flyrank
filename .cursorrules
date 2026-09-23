@@ -12,3 +12,9 @@
 - Code style: 2-space indentation, single quotes for strings
 - Components go in `src/components/`
 - Keep components small and single-responsibility
+
+## Project Rules (learned from FE-02 workflow drill)
+
+1. Forms must use react-hook-form + zod for validation — never rely on bare HTML5 attributes (type="email", required) or hand-rolled regex validation functions as the only validation layer.
+2. Every form input must have a `<label>` explicitly linked via `htmlFor`/`id` — this is a reviewable, testable requirement, not optional polish.
+3. Any feature that saves user data must persist it (localStorage or API) and reload it on mount. A "Save" handler that only logs to the console (or otherwise doesn't actually persist) is a bug, not a placeholder — never ship a success message for a save that doesn't happen.
