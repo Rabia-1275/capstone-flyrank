@@ -13,6 +13,7 @@ export default async function Navbar() {
 
   const protectedLinks = [
     { href: "/dashboard", label: "Dashboard" },
+    { href: "/profile", label: "Profile" },
     { href: "/proposals", label: "Proposals" },
     { href: "/settings", label: "Settings" },
   ];
