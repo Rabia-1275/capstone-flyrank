@@ -58,9 +58,7 @@ export default function ProfileForm({ initialData }: { initialData: Profile | nu
   const handleSubmit = async (formData: FormData) => {
     setLoading(true)
     setMessage(null)
-    
-    formData.append('skills', JSON.stringify(skills))
-    formData.append('portfolio_links', JSON.stringify(links))
+
 
     const result = await saveProfile(formData)
     
@@ -83,6 +81,8 @@ export default function ProfileForm({ initialData }: { initialData: Profile | nu
       )}
       
       <form action={handleSubmit} className="flex flex-col gap-4">
+        <input type="hidden" name="skills" value={JSON.stringify(skills)} />
+        <input type="hidden" name="portfolio_links" value={JSON.stringify(links)} />
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--foreground)]">Full Name *</label>
           <input 
