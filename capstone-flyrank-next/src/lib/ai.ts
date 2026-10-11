@@ -2,6 +2,20 @@ import 'server-only'
 import Groq from 'groq-sdk'
 import { z } from 'zod'
 
+type ProfileData = {
+  full_name?: string | null
+  headline?: string | null
+  skills?: string[] | null
+  tone?: string | null
+  portfolio_links?: string[] | null
+}
+
+type ProjectData = {
+  title?: string | null
+  description?: string | null
+  link?: string | null
+}
+
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 })
@@ -34,8 +48,8 @@ export type JobAnalysis = z.infer<typeof analysisSchema>
 type AnalyzeInput = {
   jobText: string
   platform: string
-  profile: any
-  projects: any[]
+  profile: ProfileData | null
+  projects: ProjectData[]
 }
 
 export async function analyzeJob(input: AnalyzeInput): Promise<JobAnalysis> {
@@ -47,7 +61,7 @@ export async function analyzeJob(input: AnalyzeInput): Promise<JobAnalysis> {
 
   const formattedProjects = projects && projects.length > 0
     ? projects
-        .map((p: any) => {
+        .map((p: ProjectData) => {
           const linkStr = p.link ? ` (Link: ${p.link})` : ''
           const descStr = p.description ? `: ${p.description}` : ''
           return `- ${p.title || 'Untitled Project'}${descStr}${linkStr}`
@@ -113,18 +127,19 @@ ${formattedProjects}
 
       const parsed = JSON.parse(content)
       return analysisSchema.parse(parsed)
-    } catch (error: any) {
+    } catch (error: unknown) {
       attempt++
-      lastError = error
+      const err = error as { status?: number; message?: string }
+      lastError = error instanceof Error ? error : new Error(String(error))
       
-      if (error?.status === 429) {
+      if (err?.status === 429) {
         throw new Error('Rate limit exceeded. Please wait a moment before trying again.')
-      } else if (error?.status === 401 || error?.status === 403) {
+      } else if (err?.status === 401 || err?.status === 403) {
         throw new Error('Authentication error with Groq API.')
       }
       
       if (attempt >= 2) {
-        throw new Error(`Failed to parse AI response: ${error.message || 'Unknown error'}`)
+        throw new Error(`Failed to parse AI response: ${err?.message || 'Unknown error'}`)
       }
     }
   }
@@ -137,9 +152,18 @@ type GenerateInput = {
   platform: string
   tone: string
   length: string
-  profile: any
-  projects: any[]
+  profile: ProfileData | null
+  projects: ProjectData[]
   analysis: JobAnalysis
+}
+
+export function cleanProposalText(text: string): string {
+  if (!text) return ''
+  return text
+    .replace(/\*\*/g, '')
+    .replace(/__/g, '')
+    .replace(/`/g, '')
+    .replace(/^#+\s*/gm, '')
 }
 
 export async function generateProposalStream(input: GenerateInput) {
@@ -155,14 +179,16 @@ export async function generateProposalStream(input: GenerateInput) {
 
   const formattedProjects = projects && projects.length > 0
     ? projects
-        .map((p: any) => `- ${p.title || 'Untitled'}${p.description ? `: ${p.description}` : ''}${p.link ? ` (${p.link})` : ''}`)
+        .map((p: ProjectData) => `- ${p.title || 'Untitled'}${p.description ? `: ${p.description}` : ''}${p.link ? ` (${p.link})` : ''}`)
         .join('\n')
     : 'None'
   
   const systemPrompt = `You are a freelance professional generating a proposal on ${platform}.
 Write in first person. Sign off using the name "${fullName}". Do not use placeholders like [Your Name].
 Use ONLY skills, projects and links present in the profile. Never invent experience, clients, numbers or skills. 
-Do not claim skills listed in skill gaps (${gaps}). If relevant, mention adjacent real experience instead.
+Do not claim skills listed in skill gaps (${gaps}).
+NEVER mention missing skills, gaps, or lack of experience, and never compare ("rather than", "even though I only..."). Do not apologize. Focus only on relevant strengths that exist in the profile; if experience is thin, spend the space on the client's goal and one concrete question.
+Describe a project using ONLY facts from its description. If a project has no description, mention its name and link only, with no details about what it does, how it performs, or what technology it uses.
 Reference 1-2 specific details from the job so it does not read generic.
 
 Platform style rules:
@@ -174,7 +200,9 @@ Platform style rules:
 Requested Tone: ${tone}
 Requested Length: ${length}
 
-Plain text output, no markdown headings, no emojis.
+Formatting rules:
+- Plain text output only, no emojis.
+- Do not use any markdown: no **bold**, no # headings, no backticks, no bullet symbols other than plain hyphens.
 
 Profile Information:
 Name: ${fullName}
@@ -199,13 +227,14 @@ ${formattedProjects}
       max_tokens: maxTokens,
       reasoning_effort: 'low',
     })
-  } catch (error: any) {
-    if (error?.status === 429) {
+  } catch (error: unknown) {
+    const err = error as { status?: number; message?: string }
+    if (err?.status === 429) {
       throw new Error('Rate limit exceeded. Please wait a moment before trying again.')
-    } else if (error?.status === 401 || error?.status === 403) {
+    } else if (err?.status === 401 || err?.status === 403) {
       throw new Error('Authentication error with Groq API.')
     }
-    throw new Error(`AI error: ${error.message || 'Unknown error'}`)
+    throw new Error(`AI error: ${err?.message || 'Unknown error'}`)
   }
 }
 

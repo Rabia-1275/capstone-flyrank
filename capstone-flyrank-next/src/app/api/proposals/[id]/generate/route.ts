@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { generateProposalStream } from '@/lib/ai'
+import { generateProposalStream, cleanProposalText } from '@/lib/ai'
 import { z } from 'zod'
 
 const generateRequestSchema = z.object({
@@ -8,7 +8,7 @@ const generateRequestSchema = z.object({
   length: z.enum(['short', 'medium', 'long'])
 })
 
-export async function POST(request: Request, context: any) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const resolvedParams = await context.params
   const { id } = resolvedParams
   
@@ -85,10 +85,11 @@ export async function POST(request: Request, context: any) {
           const elapsed = Date.now() - startTime
           console.log(`[Generate] ${elapsed}ms, chars=${fullText.length}, finish=${finishReason}`)
 
-          if (fullText.trim().length > 0) {
+          const cleanedText = cleanProposalText(fullText)
+          if (cleanedText.trim().length > 0) {
             const { error: updateError } = await supabase
               .from('proposals')
-              .update({ proposal_text: fullText })
+              .update({ proposal_text: cleanedText })
               .eq('id', id)
               .eq('user_id', user.id)
 
@@ -96,9 +97,10 @@ export async function POST(request: Request, context: any) {
               console.error('[Generate] Update error:', updateError.message)
             }
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           errored = true
-          console.error(`[Generate] Stream error after ${Date.now() - startTime}ms:`, e?.name, e?.message)
+          const err = e as { name?: string; message?: string }
+          console.error(`[Generate] Stream error after ${Date.now() - startTime}ms:`, err?.name, err?.message)
           controller.error(e)
         } finally {
           if (!errored) {
@@ -116,8 +118,9 @@ export async function POST(request: Request, context: any) {
       }
     })
 
-  } catch (error: any) {
-    console.error('API /generate error:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('API /generate error:', err)
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 })
   }
 }

@@ -45,6 +45,15 @@ type ProposalEditorProps = {
   initialScore?: ProposalScoreData | null
 }
 
+function cleanProposalText(rawText: string): string {
+  if (!rawText) return ''
+  return rawText
+    .replace(/\*\*/g, '')
+    .replace(/__/g, '')
+    .replace(/`/g, '')
+    .replace(/^#+\s*/gm, '')
+}
+
 export default function ProposalEditor({ proposalId, initialText, analysis, initialTone, initialScore }: ProposalEditorProps) {
   const [tone, setTone] = useState(initialTone)
   const [length, setLength] = useState<'short' | 'medium' | 'long'>('medium')
@@ -232,6 +241,8 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
         if (receivedChars === 0 && !isManualStop.current) {
           throw new Error('The AI returned no text. Please try again.')
         }
+
+        setText((prev: string) => cleanProposalText(prev))
       } catch (err: unknown) {
         const e = err as Error
         clearTimeout(watchdog)
