@@ -2,6 +2,11 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import NewProposalForm from '@/components/NewProposalForm'
 
+export const metadata = {
+  title: 'New Proposal',
+  description: 'Analyze a freelance job description and generate tailored proposals.',
+}
+
 export default async function NewProposalPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

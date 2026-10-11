@@ -5,6 +5,11 @@ import DashboardContent from '@/components/DashboardContent'
 import { aggregateDashboard } from '@/lib/dashboard'
 import type { ProposalRow } from '@/lib/dashboard'
 
+export const metadata = {
+  title: 'Dashboard',
+  description: 'Track proposal submission metrics, reply rates, win rates, and weekly performance.',
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

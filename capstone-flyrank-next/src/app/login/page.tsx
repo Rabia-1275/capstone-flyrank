@@ -19,7 +19,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md mt-10 p-6 border border-gray-200 rounded-[var(--radius)] bg-[var(--background)] shadow-sm">
+    <div className="mx-auto max-w-md mt-10 p-4 sm:p-6 border border-gray-200 rounded-[var(--radius)] bg-[var(--background)] shadow-sm">
       <h1 className="text-2xl font-bold mb-6 text-[var(--foreground)]">Login</h1>
       
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-[var(--radius)]">{error}</div>}

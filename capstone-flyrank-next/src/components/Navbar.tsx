@@ -22,21 +22,25 @@ export default async function Navbar() {
 
   return (
     <nav className="border-b border-gray-200 bg-[var(--background)]">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between p-4">
-        <div className="flex items-center gap-x-5 gap-y-2">
-          <span className="font-bold text-[var(--primary)]">ProposalAI</span>
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-y-3 p-3.5 sm:p-4">
+        <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-5 gap-y-1.5">
+          <Link href="/" className="font-bold text-[var(--primary)] text-base mr-1">
+            ProposalAI
+          </Link>
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]">
+            <Link key={l.href} href={l.href} className="text-xs sm:text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
               {l.label}
             </Link>
           ))}
         </div>
-        <div className="flex items-center gap-x-4">
+        <div className="flex items-center gap-x-3 shrink-0">
           {user ? (
             <>
-              <span className="text-sm text-[var(--muted)]">{user.email}</span>
+              <span className="hidden md:inline-block text-xs sm:text-sm text-[var(--muted)] truncate max-w-[180px]">
+                {user.email}
+              </span>
               <form action={signout}>
-                <button type="submit" className="text-sm font-medium text-[var(--foreground)] hover:text-[var(--primary)]">
+                <button type="submit" className="text-xs sm:text-sm font-medium text-[var(--foreground)] hover:text-[var(--primary)] transition-colors">
                   Sign out
                 </button>
               </form>

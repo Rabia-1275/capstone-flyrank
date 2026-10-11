@@ -3,8 +3,14 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "ProposalAI",
-  description: "AI-powered proposals, generated in minutes.",
+  title: {
+    default: "ProposalAI - Win More Freelance Jobs",
+    template: "%s | ProposalAI",
+  },
+  description: "AI-powered freelance proposal generator. Tailored proposals, job analysis, and honest scoring for Upwork, Fiverr, and Freelancer.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

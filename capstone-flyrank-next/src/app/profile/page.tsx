@@ -4,6 +4,11 @@ import ProfileForm from '@/components/ProfileForm'
 import ProjectsSection from '@/components/ProjectsSection'
 import ProfileCompleteness from '@/components/ProfileCompleteness'
 
+export const metadata = {
+  title: 'Profile',
+  description: 'Manage your freelance profile, skills, bio, and portfolio projects.',
+}
+
 export default async function ProfilePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

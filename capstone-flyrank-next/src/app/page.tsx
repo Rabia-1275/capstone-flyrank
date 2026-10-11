@@ -16,12 +16,17 @@ import {
   TrendingUp,
 } from 'lucide-react'
 
+export const metadata = {
+  title: 'ProposalAI - Win Freelance Jobs with Tailored Proposals',
+  description: 'Generate tailored freelance proposals for Upwork, Fiverr, Freelancer, and PeoplePerHour based on your verified skills and portfolio.',
+}
+
 export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   return (
-    <div className="-mx-4 sm:-mx-6">
+    <div className="-mx-4 sm:-mx-6 overflow-x-hidden">
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden px-4 sm:px-6 pt-16 pb-20 text-center">
         <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/60 to-transparent pointer-events-none" aria-hidden="true" />

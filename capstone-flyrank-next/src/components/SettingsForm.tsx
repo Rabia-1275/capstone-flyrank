@@ -118,7 +118,7 @@ export default function SettingsForm({
   return (
     <div className="space-y-8">
       {/* Account Section */}
-      <section className="bg-white rounded-[var(--radius)] border border-gray-200 p-6 shadow-xs">
+      <section className="bg-white rounded-[var(--radius)] border border-gray-200 p-4 sm:p-6 shadow-xs">
         <div className="flex items-center gap-2 mb-4">
           <Mail className="w-5 h-5 text-[var(--primary)]" />
           <h2 className="text-xl font-semibold text-[var(--foreground)]">
@@ -167,7 +167,7 @@ export default function SettingsForm({
       </section>
 
       {/* Proposal Defaults Section */}
-      <section className="bg-white rounded-[var(--radius)] border border-gray-200 p-6 shadow-xs">
+      <section className="bg-white rounded-[var(--radius)] border border-gray-200 p-4 sm:p-6 shadow-xs">
         <div className="flex items-center gap-2 mb-2">
           <Sliders className="w-5 h-5 text-[var(--primary)]" />
           <h2 className="text-xl font-semibold text-[var(--foreground)]">
@@ -258,7 +258,7 @@ export default function SettingsForm({
       </section>
 
       {/* Danger Zone Section */}
-      <section className="bg-red-50/40 rounded-[var(--radius)] border border-red-200 p-6 shadow-xs">
+      <section className="bg-red-50/40 rounded-[var(--radius)] border border-red-200 p-4 sm:p-6 shadow-xs">
         <div className="flex items-center gap-2 mb-2">
           <AlertTriangle className="w-5 h-5 text-red-600" />
           <h2 className="text-xl font-semibold text-red-900">Danger Zone</h2>

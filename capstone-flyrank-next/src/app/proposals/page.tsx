@@ -3,8 +3,8 @@ import { redirect } from 'next/navigation'
 import ProposalsList from '@/components/ProposalsList'
 
 export const metadata = {
-  title: 'Proposals | ProposalAI',
-  description: 'View and manage your generated proposals and job applications.',
+  title: 'Proposals',
+  description: 'View and manage your generated proposals, statuses, and job applications.',
 }
 
 export default async function ProposalsPage() {

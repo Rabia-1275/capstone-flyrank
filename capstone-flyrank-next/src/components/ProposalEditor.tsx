@@ -256,7 +256,6 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
         
         if (e.message.includes('fetch') || e.message.includes('Network') || e.name === 'TypeError') {
            if (retryCount > 0) {
-             console.log('Connection error, retrying...')
              return executeFetch(retryCount - 1)
            } else {
              setError('Connection error. Please check your internet and try again.')
@@ -357,24 +356,24 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
       </details>
 
       {/* Controls */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <select value={tone} onChange={e => setTone(e.target.value)} className="p-2 border rounded-[var(--radius)]">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+        <select value={tone} onChange={e => setTone(e.target.value)} className="w-full sm:w-auto p-2 border rounded-[var(--radius)]">
           <option value="professional">Professional</option>
           <option value="friendly">Friendly</option>
           <option value="confident">Confident</option>
           <option value="concise">Concise</option>
         </select>
-        <select value={length} onChange={e => setLength(e.target.value as 'short' | 'medium' | 'long')} className="p-2 border rounded-[var(--radius)]">
+        <select value={length} onChange={e => setLength(e.target.value as 'short' | 'medium' | 'long')} className="w-full sm:w-auto p-2 border rounded-[var(--radius)]">
           <option value="short">Short</option>
           <option value="medium">Medium</option>
           <option value="long">Long</option>
         </select>
         {generating ? (
-          <button onClick={stopGeneration} className="bg-red-600 text-white px-4 py-2 rounded-[var(--radius)] font-medium hover:opacity-90 flex items-center gap-2">
+          <button onClick={stopGeneration} className="w-full sm:w-auto justify-center bg-red-600 text-white px-4 py-2 rounded-[var(--radius)] font-medium hover:opacity-90 flex items-center gap-2">
             <Loader2 className="animate-spin" size={16} /> Stop
           </button>
         ) : (
-          <button onClick={startGeneration} disabled={generating} className="bg-[var(--primary)] text-white px-4 py-2 rounded-[var(--radius)] font-medium hover:opacity-90 flex items-center gap-2">
+          <button onClick={startGeneration} disabled={generating} className="w-full sm:w-auto justify-center bg-[var(--primary)] text-white px-4 py-2 rounded-[var(--radius)] font-medium hover:opacity-90 flex items-center gap-2">
             <Sparkles size={16} /> Generate
           </button>
         )}

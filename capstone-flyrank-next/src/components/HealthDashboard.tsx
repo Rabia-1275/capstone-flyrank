@@ -69,8 +69,8 @@ export default function HealthDashboard({
   return (
     <div className="space-y-6">
       {/* Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-[var(--radius)] border border-gray-200 shadow-xs">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-4 rounded-[var(--radius)] border border-gray-200 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
             <span
               className={`inline-block w-3 h-3 rounded-full ${
@@ -81,8 +81,8 @@ export default function HealthDashboard({
               {isAppOk ? 'All Systems Operational' : 'Degraded Performance'}
             </span>
           </div>
-          <span className="text-gray-300">|</span>
-          <span className="text-xs text-[var(--muted)]">
+          <span className="text-gray-300 hidden sm:inline">|</span>
+          <span className="text-xs text-[var(--muted)] w-full sm:w-auto">
             Last checked:{' '}
             <time dateTime={lastUpdated.toISOString()}>
               {lastUpdated.toLocaleTimeString()}
