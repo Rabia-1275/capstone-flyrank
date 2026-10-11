@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { CheckCircle, AlertTriangle, HelpCircle, DollarSign, Copy, Check } from 'lucide-react'
 
 type Analysis = {
@@ -14,12 +15,14 @@ type Analysis = {
 }
 
 export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolean }) {
+  const router = useRouter()
   const [platform, setPlatform] = useState('upwork')
   const [jobText, setJobText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [copiedQuestion, setCopiedQuestion] = useState<number | null>(null)
+  const [proposalId, setProposalId] = useState<string | null>(null)
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,6 +43,7 @@ export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolea
       }
       
       setAnalysis(data.analysis)
+      setProposalId(data.id)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -185,8 +189,14 @@ export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolea
               <p className="text-sm text-gray-500 mt-2 italic">{analysis.pricing.reasoning}</p>
             </div>
             
-            <button disabled className="bg-gray-300 text-gray-500 cursor-not-allowed font-bold py-3 px-6 rounded-[var(--radius)] whitespace-nowrap">
-              Generate Proposal (Phase 4)
+            <button
+              onClick={() => {
+                if (proposalId) router.push(`/proposals/${proposalId}`)
+              }}
+              disabled={!proposalId}
+              className={`font-bold py-3 px-6 rounded-[var(--radius)] whitespace-nowrap ${proposalId ? 'bg-[var(--primary)] text-white hover:opacity-90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+            >
+              Generate Proposal
             </button>
           </div>
         </div>

@@ -1,8 +1,51 @@
-export default function Page() {
+import { createClient } from '@/utils/supabase/server'
+import { redirect, notFound } from 'next/navigation'
+import ProposalEditor from '@/components/ProposalEditor'
+
+export default async function ProposalPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  // Load the proposal (must belong to user)
+  const { data: proposal, error: proposalError } = await supabase
+    .from('proposals')
+    .select('id, user_id, platform, tone, job_text, analysis, proposal_text, score, status, created_at')
+    .eq('id', resolvedParams.id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (proposalError) {
+    console.error('Error fetching proposal (server):', proposalError.message)
+    throw new Error('Failed to load proposal')
+  }
+  if (!proposal) {
+    notFound()
+  }
+
+  // Load profile & projects for controls / generation
+  const [{ data: profile }, { data: projects }] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+    supabase.from('projects').select('*').eq('user_id', user.id)
+  ])
+
+  const initialTone = proposal.tone || profile?.tone || 'professional'
+
   return (
-    <section>
-      <h1 className="text-2xl font-bold">Proposal detail</h1>
-      <p className="mt-2 text-muted">Placeholder screen.</p>
-    </section>
-  );
+    <div className="mt-8 max-w-4xl mx-auto pb-12">
+      <h1 className="text-3xl font-bold mb-6 text-[var(--foreground)]">Proposal</h1>
+      <ProposalEditor
+        proposalId={proposal.id}
+        initialText={proposal.proposal_text || ''}
+        analysis={proposal.analysis}
+        initialTone={initialTone}
+        profile={profile}
+        projects={projects || []}
+      />
+    </div>
+  )
 }

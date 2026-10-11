@@ -7,6 +7,7 @@ const groq = new Groq({
 })
 
 const MODEL = process.env.GROQ_MODEL || 'llama3-70b-8192'
+const GENERATE_MODEL = process.env.GROQ_MODEL_GENERATE || MODEL
 
 export const analysisSchema = z.object({
   summary: z.string(),
@@ -74,7 +75,7 @@ Skills: ${profile?.skills?.join(', ')}
 Tone: ${profile?.tone}
 
 Projects:
-${projects?.map(p => `- ${p.title}: ${p.description}`).join('\n')}
+${projects?.map((p: any) => `- ${p.title}: ${p.description}`).join('\n')}
 `
 
   let attempt = 0
@@ -106,7 +107,6 @@ ${projects?.map(p => `- ${p.title}: ${p.description}`).join('\n')}
         throw new Error('Authentication error with Groq API.')
       }
       
-      // If we failed validation or parsing, we retry once
       if (attempt >= 2) {
         throw new Error(`Failed to parse AI response: ${error.message || 'Unknown error'}`)
       }
@@ -114,4 +114,71 @@ ${projects?.map(p => `- ${p.title}: ${p.description}`).join('\n')}
   }
 
   throw lastError
+}
+
+type GenerateInput = {
+  jobText: string
+  platform: string
+  tone: string
+  length: string
+  profile: any
+  projects: any[]
+  analysis: JobAnalysis
+}
+
+export async function generateProposalStream(input: GenerateInput) {
+  const { jobText, platform, tone, length, profile, projects, analysis } = input
+  
+  const gaps = analysis.skill_match.gaps.join(', ') || 'none'
+  const links = profile?.portfolio_links?.join(', ') || ''
+  
+  const systemPrompt = `You are a freelance professional generating a proposal on ${platform}.
+Write in first person. Sign off using the name "${profile?.full_name || 'the freelancer'}". Do not use placeholders like [Your Name].
+Use ONLY skills, projects and links present in the profile. Never invent experience, clients, numbers or skills. 
+Do not claim skills listed in skill gaps (${gaps}). If relevant, mention adjacent real experience instead.
+Reference 1-2 specific details from the job so it does not read generic.
+
+Platform style rules:
+- upwork: strong first two lines, about 150-250 words, end with one clarifying question.
+- fiverr: short and direct, about 100-150 words.
+- freelancer: mention timeline and price clearly, about 150-200 words.
+- peopleperhour: professional, about 150-200 words.
+
+Requested Tone: ${tone}
+Requested Length: ${length}
+
+Include portfolio links (${links}) only if they exist and make sense.
+Plain text output, no markdown headings, no emojis.
+
+Profile Information:
+Name: ${profile?.full_name}
+Headline: ${profile?.headline}
+Skills: ${profile?.skills?.join(', ')}
+
+Projects:
+${projects?.map((p: any) => `- ${p.title}: ${p.description}`).join('\n')}
+`
+
+  try {
+    const maxTokens = length === 'short' ? 300 : length === 'medium' ? 600 : 1200;
+
+    // @ts-ignore
+    return await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Job Description:\n${jobText}` }
+      ],
+      model: GENERATE_MODEL,
+      stream: true,
+      max_tokens: maxTokens,
+      reasoning_format: 'hidden',
+    })
+  } catch (error: any) {
+    if (error?.status === 429) {
+      throw new Error('Rate limit exceeded. Please wait a moment before trying again.')
+    } else if (error?.status === 401 || error?.status === 403) {
+      throw new Error('Authentication error with Groq API.')
+    }
+    throw new Error(`AI error: ${error.message || 'Unknown error'}`)
+  }
 }

@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const result = analyzeRequestSchema.safeParse(body)
     if (!result.success) {
-      return NextResponse.json({ error: result.error.errors[0].message }, { status: 400 })
+      return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 })
     }
 
     const { jobText, platform } = result.data
@@ -39,10 +39,11 @@ export async function POST(request: Request) {
     }
 
     // Fetch user profile and projects
-    const [ { data: profile }, { data: projects } ] = await Promise.all([
+    const [ { data: profile }, { data: projectsResult } ] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       supabase.from('projects').select('*').eq('user_id', user.id)
     ])
+    const projects = projectsResult || []
 
     // Call Groq
     const analysis = await analyzeJob({
