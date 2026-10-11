@@ -40,9 +40,24 @@ type AnalyzeInput = {
 
 export async function analyzeJob(input: AnalyzeInput): Promise<JobAnalysis> {
   const { jobText, platform, profile, projects } = input
-  
+
+  const portfolioLinks = profile?.portfolio_links && profile.portfolio_links.length > 0
+    ? profile.portfolio_links.join(', ')
+    : 'None'
+
+  const formattedProjects = projects && projects.length > 0
+    ? projects
+        .map((p: any) => {
+          const linkStr = p.link ? ` (Link: ${p.link})` : ''
+          const descStr = p.description ? `: ${p.description}` : ''
+          return `- ${p.title || 'Untitled Project'}${descStr}${linkStr}`
+        })
+        .join('\n')
+    : 'None'
+
   const systemPrompt = `You are an expert freelance job analyzer for platforms like ${platform}.
 Base your match on the provided profile ONLY. Do not invent skills or experience.
+Treat portfolio_links and project links as provided evidence of past work and verified portfolio items. Do NOT claim "No portfolio links provided" if portfolio_links or project links are present.
 Treat pricing as a rough estimate.
 Always return your response in JSON format exactly matching the following schema.
 Ensure your response is parseable JSON.
@@ -69,13 +84,14 @@ Schema:
 }
 
 Profile Information:
-Name: ${profile?.full_name}
-Headline: ${profile?.headline}
-Skills: ${profile?.skills?.join(', ')}
-Tone: ${profile?.tone}
+Full Name: ${profile?.full_name || 'Not provided'}
+Headline: ${profile?.headline || 'Not provided'}
+Skills: ${profile?.skills && profile.skills.length > 0 ? profile.skills.join(', ') : 'None'}
+Tone: ${profile?.tone || 'professional'}
+Portfolio Links: ${portfolioLinks}
 
 Projects:
-${projects?.map((p: any) => `- ${p.title}: ${p.description}`).join('\n')}
+${formattedProjects}
 `
 
   let attempt = 0
