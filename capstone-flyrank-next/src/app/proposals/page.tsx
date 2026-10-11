@@ -1,8 +1,23 @@
-export default function Page() {
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
+import ProposalsList from '@/components/ProposalsList'
+
+export const metadata = {
+  title: 'Proposals | ProposalAI',
+  description: 'View and manage your generated proposals and job applications.',
+}
+
+export default async function ProposalsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
   return (
-    <section>
-      <h1 className="text-2xl font-bold">Proposals</h1>
-      <p className="mt-2 text-muted">Placeholder screen.</p>
-    </section>
-  );
+    <div className="py-6">
+      <ProposalsList />
+    </div>
+  )
 }

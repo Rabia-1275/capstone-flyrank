@@ -2,6 +2,8 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import ProposalEditor from '@/components/ProposalEditor'
 
+import ProposalStatusSelect from '@/components/ProposalStatusSelect'
+
 export default async function ProposalPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
   const supabase = await createClient()
@@ -37,7 +39,16 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="mt-8 max-w-4xl mx-auto pb-12">
-      <h1 className="text-3xl font-bold mb-6 text-[var(--foreground)]">Proposal</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h1 className="text-3xl font-bold text-[var(--foreground)]">Proposal</h1>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-[var(--muted)]">Status:</span>
+          <ProposalStatusSelect
+            proposalId={proposal.id}
+            currentStatus={proposal.status || 'draft'}
+          />
+        </div>
+      </div>
       <ProposalEditor
         proposalId={proposal.id}
         initialText={proposal.proposal_text || ''}
