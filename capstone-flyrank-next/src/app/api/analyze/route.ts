@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         platform,
-        tone: profile?.tone || 'professional',
+        tone: profile?.default_tone || profile?.tone || 'professional',
         job_text: jobText,
         analysis,
         status: 'draft'
@@ -71,8 +71,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ id: proposal.id, analysis })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API /analyze error:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

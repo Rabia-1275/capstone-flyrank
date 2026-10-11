@@ -40,6 +40,7 @@ type ProposalEditorProps = {
   initialText: string
   analysis: Analysis
   initialTone: string
+  initialLength?: 'short' | 'medium' | 'long'
   profile?: Record<string, unknown> | null
   projects?: Array<Record<string, unknown>> | null
   initialScore?: ProposalScoreData | null
@@ -54,9 +55,9 @@ function cleanProposalText(rawText: string): string {
     .replace(/^#+\s*/gm, '')
 }
 
-export default function ProposalEditor({ proposalId, initialText, analysis, initialTone, initialScore }: ProposalEditorProps) {
+export default function ProposalEditor({ proposalId, initialText, analysis, initialTone, initialLength, initialScore }: ProposalEditorProps) {
   const [tone, setTone] = useState(initialTone)
-  const [length, setLength] = useState<'short' | 'medium' | 'long'>('medium')
+  const [length, setLength] = useState<'short' | 'medium' | 'long'>(initialLength || 'medium')
   const [text, setText] = useState(initialText)
   const [savedText, setSavedText] = useState(initialText)
   const [generating, setGenerating] = useState(false)

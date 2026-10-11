@@ -35,7 +35,8 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
     supabase.from('projects').select('*').eq('user_id', user.id)
   ])
 
-  const initialTone = proposal.tone || profile?.tone || 'professional'
+  const initialTone = proposal.tone || profile?.default_tone || profile?.tone || 'professional'
+  const initialLength = (['short', 'medium', 'long'].includes(profile?.default_length) ? profile.default_length : 'medium') as 'short' | 'medium' | 'long'
 
   return (
     <div className="mt-8 max-w-4xl mx-auto pb-12">
@@ -54,6 +55,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
         initialText={proposal.proposal_text || ''}
         analysis={proposal.analysis}
         initialTone={initialTone}
+        initialLength={initialLength}
         profile={profile}
         projects={projects || []}
         initialScore={proposal.score}
