@@ -54,7 +54,7 @@ export default function LoginPage() {
         </button>
       </form>
       <div className="mt-4 text-sm text-center text-[var(--muted)]">
-        Don't have an account? <Link href="/signup" className="text-[var(--primary)] hover:underline">Sign up</Link>
+        Don&apos;t have an account? <Link href="/signup" className="text-[var(--primary)] hover:underline">Sign up</Link>
       </div>
     </div>
   )

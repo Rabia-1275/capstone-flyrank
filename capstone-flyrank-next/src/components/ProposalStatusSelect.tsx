@@ -79,13 +79,13 @@ export default function ProposalStatusSelect({
       if (error) {
         throw new Error(error.message)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Rollback on error
       setStatus(previousStatus)
       if (onStatusChange) {
         onStatusChange(previousStatus)
       }
-      setErrorMessage(err?.message || 'Failed to update status')
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to update status')
     } finally {
       setIsUpdating(false)
     }

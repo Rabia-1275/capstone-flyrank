@@ -12,7 +12,7 @@ export default async function ProfileCompleteness() {
   ])
 
   let score = 0
-  let maxScore = 4 // name, headline, 3+ skills, 1+ project
+  const maxScore = 4 // name, headline, 3+ skills, 1+ project
 
   if (profile) {
     if (profile.full_name) score += 1

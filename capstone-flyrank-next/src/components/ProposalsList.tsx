@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
@@ -100,10 +100,10 @@ export default function ProposalsList() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  const fetchProposals = async () => {
-    setLoading(true)
-    setError(null)
+  const fetchProposals = useCallback(async () => {
     try {
+      setLoading(true)
+      setError(null)
       const supabase = createClient()
       const { data: { user }, error: userError } = await supabase.auth.getUser()
 
@@ -124,16 +124,55 @@ export default function ProposalsList() {
       }
 
       setProposals((data as ProposalItem[]) || [])
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load proposals')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load proposals')
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
   useEffect(() => {
-    fetchProposals()
-  }, [])
+    let ignore = false
+    async function init() {
+      try {
+        const supabase = createClient()
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+        if (userError || !user) {
+          router.push('/login')
+          return
+        }
+
+        const { data, error: fetchErr } = await supabase
+          .from('proposals')
+          .select('id, user_id, platform, job_text, status, proposal_text, score, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (fetchErr) {
+          throw new Error(fetchErr.message)
+        }
+
+        if (!ignore) {
+          setProposals((data as ProposalItem[]) || [])
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : 'Failed to load proposals')
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false)
+        }
+      }
+    }
+
+    init()
+
+    return () => {
+      ignore = true
+    }
+  }, [router])
 
   // Optimistic local status update when a child ProposalStatusSelect changes
   const handleOptimisticStatusChange = (id: string, newStatus: ProposalStatus) => {
@@ -162,8 +201,8 @@ export default function ProposalsList() {
       // Remove from state
       setProposals((prev) => prev.filter((p) => p.id !== deleteTarget.id))
       setDeleteTarget(null)
-    } catch (err: any) {
-      setDeleteError(err?.message || 'Failed to delete proposal')
+    } catch (err: unknown) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete proposal')
     } finally {
       setIsDeleting(false)
     }
@@ -335,7 +374,7 @@ export default function ProposalsList() {
           </div>
           <h2 className="text-xl font-bold text-[var(--foreground)]">No proposals yet</h2>
           <p className="text-sm text-[var(--muted)] max-w-md mx-auto mt-2">
-            You haven't created any proposals yet. Paste your first job post to generate tailored pitches and win more clients.
+            You haven&apos;t created any proposals yet. Paste your first job post to generate tailored pitches and win more clients.
           </p>
           <div className="mt-6">
             <Link

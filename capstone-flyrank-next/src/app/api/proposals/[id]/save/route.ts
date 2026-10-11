@@ -6,7 +6,7 @@ const saveRequestSchema = z.object({
   proposal_text: z.string()
 })
 
-export async function POST(request: Request, context: any) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const resolvedParams = await context.params
   const { id } = resolvedParams
   const supabase = await createClient()
