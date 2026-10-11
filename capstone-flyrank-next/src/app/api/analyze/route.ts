@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { analyzeJob } from '@/lib/ai'
+import { checkAndRecordUsage } from '@/lib/usage'
 import { z } from 'zod'
+
+export const maxDuration = 60
 
 const analyzeRequestSchema = z.object({
   jobText: z.string().min(50, 'Job description must be at least 50 characters').max(8000, 'Job description too long'),
@@ -10,6 +13,13 @@ const analyzeRequestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    if (process.env.AI_DISABLED === 'true') {
+      return NextResponse.json(
+        { error: 'AI features are temporarily disabled' },
+        { status: 503 }
+      )
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -25,17 +35,18 @@ export async function POST(request: Request) {
 
     const { jobText, platform } = result.data
 
-    // Check rate limit: max 10 proposals in last hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-    const { count, error: countError } = await supabase
-      .from('proposals')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .gte('created_at', oneHourAgo)
-
-    if (countError) throw countError
-    if (count !== null && count >= 10) {
-      return NextResponse.json({ error: 'Rate limit exceeded: You have created too many proposals recently.' }, { status: 429 })
+    // Check usage cap
+    const usage = await checkAndRecordUsage(supabase, user.id, 'analyze')
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: usage.message, resetTime: usage.resetTime },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(usage.retryAfterSeconds),
+          },
+        }
+      )
     }
 
     // Fetch user profile and projects

@@ -1,13 +1,23 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { scoreProposal } from '@/lib/ai'
+import { checkAndRecordUsage } from '@/lib/usage'
 import crypto from 'crypto'
+
+export const maxDuration = 60
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const resolvedParams = await context.params
   const { id } = resolvedParams
 
   try {
+    if (process.env.AI_DISABLED === 'true') {
+      return NextResponse.json(
+        { error: 'AI features are temporarily disabled' },
+        { status: 503 }
+      )
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -53,13 +63,26 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       }
     }
 
+    // Check usage cap
+    const usage = await checkAndRecordUsage(supabase, user.id, 'score')
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: usage.message, resetTime: usage.resetTime },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(usage.retryAfterSeconds),
+          },
+        }
+      )
+    }
+
     // Load profile and projects
     const [ { data: profile }, { data: projects } ] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       supabase.from('projects').select('*').eq('user_id', user.id)
     ])
 
-    const startTime = Date.now()
     const result = await scoreProposal({
       jobText: proposal.job_text,
       proposalText,
@@ -67,9 +90,6 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       projects: projects || [],
       analysis: proposal.analysis
     })
-
-    const elapsed = Date.now() - startTime
-    console.log(`[Score] ${elapsed}ms, overall=${result.overall}`)
 
     const scoredData = {
       ...result,

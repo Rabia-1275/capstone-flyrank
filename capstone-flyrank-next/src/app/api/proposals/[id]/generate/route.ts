@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { generateProposalStream, cleanProposalText } from '@/lib/ai'
+import { checkAndRecordUsage } from '@/lib/usage'
 import { z } from 'zod'
+
+export const maxDuration = 60
 
 const generateRequestSchema = z.object({
   tone: z.string(),
@@ -13,6 +16,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const { id } = resolvedParams
   
   try {
+    if (process.env.AI_DISABLED === 'true') {
+      return NextResponse.json(
+        { error: 'AI features are temporarily disabled' },
+        { status: 503 }
+      )
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -32,6 +42,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 })
     }
     const { tone, length } = result.data
+
+    // Check usage cap
+    const usage = await checkAndRecordUsage(supabase, user.id, 'generate')
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: usage.message, resetTime: usage.resetTime },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(usage.retryAfterSeconds),
+          },
+        }
+      )
+    }
 
     // Fetch the proposal
     const { data: proposal, error: proposalError } = await supabase
@@ -66,24 +90,16 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       async start(controller) {
         let fullText = ''
         const startTime = Date.now()
-        let finishReason: string | null = null
         let errored = false
 
         try {
           for await (const chunk of groqStream) {
-            const choice = chunk.choices?.[0]
-            if (choice?.finish_reason) {
-              finishReason = choice.finish_reason
-            }
-            const text = choice?.delta?.content
+            const text = chunk.choices?.[0]?.delta?.content
             if (text) {
               fullText += text
               controller.enqueue(encoder.encode(text))
             }
           }
-
-          const elapsed = Date.now() - startTime
-          console.log(`[Generate] ${elapsed}ms, chars=${fullText.length}, finish=${finishReason}`)
 
           const cleanedText = cleanProposalText(fullText)
           if (cleanedText.trim().length > 0) {
