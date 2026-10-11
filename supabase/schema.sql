@@ -1,10 +1,7 @@
 -- ==============================================================================
 -- ProposalAI - Full Database Schema
--- Run this in the Supabase SQL Editor to recreate the database from scratch.
+-- For a FRESH Supabase project only. Do not run on the existing database; use supabase/migrations for changes.
 -- ==============================================================================
-
--- Enable UUID extension if not already present
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ==============================================================================
 -- 1. Profiles Table
@@ -16,10 +13,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   tone TEXT DEFAULT 'professional',
   default_tone TEXT DEFAULT 'professional',
   default_length TEXT DEFAULT 'medium',
-  skills JSONB DEFAULT '[]'::jsonb,
-  portfolio_links JSONB DEFAULT '[]'::jsonb,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  skills TEXT[] DEFAULT '{}',
+  portfolio_links TEXT[] DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Comments for profiles schema
@@ -72,6 +68,8 @@ BEGIN
 END;
 $$;
 
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM public, anon, authenticated;
+
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -87,8 +85,7 @@ CREATE TABLE IF NOT EXISTS public.projects (
   title TEXT NOT NULL,
   description TEXT,
   link TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_projects_user_created
@@ -135,9 +132,8 @@ CREATE TABLE IF NOT EXISTS public.proposals (
   analysis JSONB,
   proposal_text TEXT,
   score JSONB,
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'sent', 'replied', 'won', 'lost')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'sent', 'replied', 'won', 'lost')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_proposals_user_created
