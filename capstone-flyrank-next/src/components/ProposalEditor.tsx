@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { CheckCircle, AlertTriangle, HelpCircle, DollarSign, Copy, Check, Loader2, X, ChevronDown } from 'lucide-react'
+import { CheckCircle, AlertTriangle, HelpCircle, DollarSign, Copy, Check, Loader2, Sparkles, ChevronDown } from 'lucide-react'
 
 type Analysis = {
   summary: string
@@ -36,15 +36,16 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
 
   // Debounced autosave
   useEffect(() => {
-    if (text === savedText) return
+    if (generating || text === savedText || text.trim() === '') return
     if (autosaveTimeout.current) clearTimeout(autosaveTimeout.current)
     autosaveTimeout.current = setTimeout(() => {
       saveProposal()
     }, 2000)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text])
+  }, [text, generating])
 
   const saveProposal = async () => {
+    if (text.trim() === '') return
     try {
       const res = await fetch(`/api/proposals/${proposalId}/save`, {
         method: 'POST',
@@ -97,28 +98,45 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
 
         if (!res.ok) {
           clearTimeout(watchdog)
-          const err = await res.json()
+          const err = await res.json().catch(() => ({}))
           if (res.status === 429) throw new Error('Rate limit exceeded. Please wait a moment before trying again.')
           if (res.status === 401 || res.status === 403) throw new Error('Authentication error. Please log in again.')
           if (res.status === 504 || res.status === 408) throw new Error('The server timed out. Please try again.')
-          throw new Error(err.error || 'Generation failed')
+          throw new Error(err?.error || 'Generation failed')
         }
 
         const reader = res.body?.getReader()
-        const decoder = new TextDecoder()
-        let done = false
+        if (!reader) {
+          throw new Error('No response stream available')
+        }
 
-        while (!done) {
-          const { value, done: doneReading } = await reader!.read()
-          if (!firstTokenReceived) {
-            firstTokenReceived = true
-            clearTimeout(watchdog)
-          }
-          done = doneReading
+        const decoder = new TextDecoder()
+        let receivedChars = 0
+
+        while (true) {
+          const { value, done: doneReading } = await reader.read()
+          if (doneReading) break
           if (value) {
-            const chunk = decoder.decode(value)
+            if (!firstTokenReceived) {
+              firstTokenReceived = true
+              clearTimeout(watchdog)
+            }
+            const chunk = decoder.decode(value, { stream: true })
+            receivedChars += chunk.length
             setText((prev: string) => prev + chunk)
           }
+        }
+
+        clearTimeout(watchdog)
+
+        const finalChunk = decoder.decode()
+        if (finalChunk) {
+          receivedChars += finalChunk.length
+          setText((prev: string) => prev + finalChunk)
+        }
+
+        if (receivedChars === 0 && !isManualStop.current) {
+          throw new Error('The AI returned no text. Please try again.')
         }
       } catch (e: any) {
         clearTimeout(watchdog)
@@ -246,14 +264,30 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
         </select>
         {generating ? (
           <button onClick={stopGeneration} className="bg-red-600 text-white px-4 py-2 rounded-[var(--radius)] font-medium hover:opacity-90 flex items-center gap-2">
-            <X size={16} /> Stop
+            <Loader2 className="animate-spin" size={16} /> Stop
           </button>
         ) : (
           <button onClick={startGeneration} disabled={generating} className="bg-[var(--primary)] text-white px-4 py-2 rounded-[var(--radius)] font-medium hover:opacity-90 flex items-center gap-2">
-            <Loader2 className="animate-spin" size={16} /> Generate
+            <Sparkles size={16} /> Generate
           </button>
         )}
       </div>
+
+      {/* Error box */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-[var(--radius)] flex items-center justify-between gap-4 text-red-700">
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-600" />
+            <span className="text-sm font-medium">{error}</span>
+          </div>
+          <button
+            onClick={() => startGeneration()}
+            className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors flex-shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Editable textarea */}
       <div className="relative">
@@ -278,16 +312,6 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
         </button>
         {text !== savedText && (
           <span className="text-red-500 italic">Unsaved changes</span>
-        )}
-        {error && (
-          <div className="flex items-center gap-2 text-red-600">
-            <span>{error}</span>
-            {error === 'The AI took too long. Please try again' && (
-              <button onClick={startGeneration} className="underline font-bold hover:text-red-800">
-                Retry
-              </button>
-            )}
-          </div>
         )}
       </div>
     </div>

@@ -6,7 +6,7 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 })
 
-const MODEL = process.env.GROQ_MODEL || 'llama3-70b-8192'
+const MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
 const GENERATE_MODEL = process.env.GROQ_MODEL_GENERATE || MODEL
 
 export const analysisSchema = z.object({
@@ -145,11 +145,22 @@ type GenerateInput = {
 export async function generateProposalStream(input: GenerateInput) {
   const { jobText, platform, tone, length, profile, projects, analysis } = input
   
-  const gaps = analysis.skill_match.gaps.join(', ') || 'none'
-  const links = profile?.portfolio_links?.join(', ') || ''
+  const gaps = analysis.skill_match?.gaps?.length > 0
+    ? analysis.skill_match.gaps.join(', ')
+    : 'None'
+  const portfolioLinks = profile?.portfolio_links && profile.portfolio_links.length > 0
+    ? profile.portfolio_links.join(', ')
+    : 'None'
+  const fullName = profile?.full_name || 'the freelancer'
+
+  const formattedProjects = projects && projects.length > 0
+    ? projects
+        .map((p: any) => `- ${p.title || 'Untitled'}${p.description ? `: ${p.description}` : ''}${p.link ? ` (${p.link})` : ''}`)
+        .join('\n')
+    : 'None'
   
   const systemPrompt = `You are a freelance professional generating a proposal on ${platform}.
-Write in first person. Sign off using the name "${profile?.full_name || 'the freelancer'}". Do not use placeholders like [Your Name].
+Write in first person. Sign off using the name "${fullName}". Do not use placeholders like [Your Name].
 Use ONLY skills, projects and links present in the profile. Never invent experience, clients, numbers or skills. 
 Do not claim skills listed in skill gaps (${gaps}). If relevant, mention adjacent real experience instead.
 Reference 1-2 specific details from the job so it does not read generic.
@@ -163,20 +174,20 @@ Platform style rules:
 Requested Tone: ${tone}
 Requested Length: ${length}
 
-Include portfolio links (${links}) only if they exist and make sense.
 Plain text output, no markdown headings, no emojis.
 
 Profile Information:
-Name: ${profile?.full_name}
-Headline: ${profile?.headline}
-Skills: ${profile?.skills?.join(', ')}
+Name: ${fullName}
+Headline: ${profile?.headline || 'Not provided'}
+Skills: ${profile?.skills && profile.skills.length > 0 ? profile.skills.join(', ') : 'None'}
+Portfolio Links: ${portfolioLinks}
 
 Projects:
-${projects?.map((p: any) => `- ${p.title}: ${p.description}`).join('\n')}
+${formattedProjects}
 `
 
   try {
-    const maxTokens = length === 'short' ? 300 : length === 'medium' ? 600 : 1200;
+    const maxTokens = length === 'short' ? 700 : length === 'medium' ? 1000 : 1400;
 
     // @ts-ignore
     return await groq.chat.completions.create({
@@ -187,7 +198,7 @@ ${projects?.map((p: any) => `- ${p.title}: ${p.description}`).join('\n')}
       model: GENERATE_MODEL,
       stream: true,
       max_tokens: maxTokens,
-      reasoning_format: 'hidden',
+      reasoning_effort: 'low',
     })
   } catch (error: any) {
     if (error?.status === 429) {

@@ -20,7 +20,13 @@ export async function POST(request: Request, context: any) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+
     const result = generateRequestSchema.safeParse(body)
     if (!result.success) {
       return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 })
@@ -60,31 +66,44 @@ export async function POST(request: Request, context: any) {
       async start(controller) {
         let fullText = ''
         const startTime = Date.now()
-        let firstTokenTime: number | null = null
+        let finishReason: string | null = null
+        let errored = false
+
         try {
           for await (const chunk of groqStream) {
-            const text = chunk.choices[0]?.delta?.content || ''
-            if (text && !firstTokenTime) {
-              firstTokenTime = Date.now()
-              console.log(`[Generate Route] Time to first token: ${firstTokenTime - startTime}ms`)
+            const choice = chunk.choices?.[0]
+            if (choice?.finish_reason) {
+              finishReason = choice.finish_reason
             }
-            fullText += text
-            controller.enqueue(encoder.encode(text))
+            const text = choice?.delta?.content
+            if (text) {
+              fullText += text
+              controller.enqueue(encoder.encode(text))
+            }
           }
-          
-          console.log(`[Generate Route] Stream finished. Total time: ${Date.now() - startTime}ms, chars: ${fullText.length}`)
-          
-          await supabase
-            .from('proposals')
-            .update({ proposal_text: fullText, status: 'generated' })
-            .eq('id', id)
-            .eq('user_id', user.id)
-            
+
+          const elapsed = Date.now() - startTime
+          console.log(`[Generate] ${elapsed}ms, chars=${fullText.length}, finish=${finishReason}`)
+
+          if (fullText.trim().length > 0) {
+            const { error: updateError } = await supabase
+              .from('proposals')
+              .update({ proposal_text: fullText })
+              .eq('id', id)
+              .eq('user_id', user.id)
+
+            if (updateError) {
+              console.error('[Generate] Update error:', updateError.message)
+            }
+          }
         } catch (e: any) {
-          console.error(`[Generate Route] Error after ${Date.now() - startTime}ms:`, e.name, e.message)
-          controller.enqueue(encoder.encode(`\n\n[Generation Error: ${e.message}]`))
+          errored = true
+          console.error(`[Generate] Stream error after ${Date.now() - startTime}ms:`, e?.name, e?.message)
+          controller.error(e)
         } finally {
-          controller.close()
+          if (!errored) {
+            controller.close()
+          }
         }
       }
     })
