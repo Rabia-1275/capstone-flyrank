@@ -189,7 +189,6 @@ ${formattedProjects}
   try {
     const maxTokens = length === 'short' ? 700 : length === 'medium' ? 1000 : 1400;
 
-    // @ts-ignore
     return await groq.chat.completions.create({
       messages: [
         { role: 'system', content: systemPrompt },
@@ -208,4 +207,137 @@ ${formattedProjects}
     }
     throw new Error(`AI error: ${error.message || 'Unknown error'}`)
   }
+}
+
+export const scoreBreakdownItemSchema = z.object({
+  score: z.number().min(0).max(10),
+  feedback: z.string(),
+})
+
+export const proposalScoreSchema = z.object({
+  overall: z.number().min(0).max(100),
+  breakdown: z.object({
+    hook: scoreBreakdownItemSchema,
+    relevance: scoreBreakdownItemSchema,
+    specificity: scoreBreakdownItemSchema,
+    clarity_length: scoreBreakdownItemSchema,
+    call_to_action: scoreBreakdownItemSchema,
+  }),
+  strengths: z.array(z.string()).max(3),
+  improvements: z.array(z.string()).max(3),
+  unsupported_claims: z.array(z.string()),
+  better_opening: z.string(),
+})
+
+export type ProposalScore = z.infer<typeof proposalScoreSchema>
+
+type ScoreInput = {
+  jobText: string
+  proposalText: string
+  profile: Record<string, unknown> | null
+  projects: Array<Record<string, unknown>>
+  analysis?: { skill_match?: { gaps?: string[] } } | null
+}
+
+export async function scoreProposal(input: ScoreInput): Promise<ProposalScore> {
+  const { jobText, proposalText, profile, projects, analysis } = input
+
+  const portfolioLinks = Array.isArray(profile?.portfolio_links) && profile.portfolio_links.length > 0
+    ? (profile.portfolio_links as string[]).join(', ')
+    : 'None'
+  const fullName = (profile?.full_name as string) || 'the freelancer'
+  const gaps = analysis?.skill_match?.gaps && analysis.skill_match.gaps.length > 0
+    ? analysis.skill_match.gaps.join(', ')
+    : 'None'
+
+  const formattedProjects = projects && projects.length > 0
+    ? projects
+        .map((p) => `- ${p.title || 'Untitled'}${p.description ? `: ${p.description}` : ''}${p.link ? ` (${p.link})` : ''}`)
+        .join('\n')
+    : 'None'
+
+  const systemPrompt = `You are an expert proposal reviewer and coach for freelance clients.
+Evaluate the candidate's proposal strictly against the provided job description and profile.
+Be specific, constructive, and honest (do not inflate scores). Never invent facts.
+Label the result as feedback, not a prediction of winning.
+
+Evaluation guidelines:
+- overall: overall quality score from 0 to 100 based on the breakdown.
+- breakdown:
+  * hook: 0-10 score and specific feedback for first 1-2 sentences.
+  * relevance: 0-10 score and feedback on how directly it addresses client needs.
+  * specificity: 0-10 score and feedback on concrete examples, tech details, or proof.
+  * clarity_length: 0-10 score and feedback on conciseness, readability, and formatting.
+  * call_to_action: 0-10 score and feedback on the closing question or prompt to action.
+- strengths: list of up to 3 strong points in the proposal (strings).
+- improvements: list of up to 3 high-impact areas for improvement (strings).
+- unsupported_claims: list of statements in the proposal that are NOT backed by the candidate's profile or projects (strings). Return empty array if none found.
+- better_opening: a rewritten first two lines for the proposal using ONLY real facts from the candidate's profile.
+
+Return ONLY valid JSON matching this schema:
+{
+  "overall": number (0-100),
+  "breakdown": {
+    "hook": { "score": number (0-10), "feedback": "string" },
+    "relevance": { "score": number (0-10), "feedback": "string" },
+    "specificity": { "score": number (0-10), "feedback": "string" },
+    "clarity_length": { "score": number (0-10), "feedback": "string" },
+    "call_to_action": { "score": number (0-10), "feedback": "string" }
+  },
+  "strengths": ["string"],
+  "improvements": ["string"],
+  "unsupported_claims": ["string"],
+  "better_opening": "string"
+}
+
+Candidate Profile:
+Name: ${fullName}
+Headline: ${profile?.headline || 'Not provided'}
+Skills: ${Array.isArray(profile?.skills) && profile.skills.length > 0 ? (profile.skills as string[]).join(', ') : 'None'}
+Portfolio Links: ${portfolioLinks}
+Skill Gaps Identified: ${gaps}
+
+Candidate Projects:
+${formattedProjects}
+`
+
+  let attempt = 0
+  let lastError: Error | null = null
+
+  while (attempt < 2) {
+    try {
+      const response = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Job Description:\n${jobText}\n\nCandidate Proposal:\n${proposalText}` }
+        ],
+        model: MODEL,
+        response_format: { type: 'json_object' },
+        max_tokens: 1500,
+        reasoning_effort: 'low',
+      })
+
+      const content = response.choices[0]?.message?.content
+      if (!content) throw new Error('Empty response from Groq')
+
+      const parsed = JSON.parse(content)
+      return proposalScoreSchema.parse(parsed)
+    } catch (error: unknown) {
+      attempt++
+      const err = error as { status?: number; message?: string }
+      lastError = error instanceof Error ? error : new Error(String(error))
+
+      if (err?.status === 429) {
+        throw new Error('Rate limit exceeded. Please wait a moment before trying again.')
+      } else if (err?.status === 401 || err?.status === 403) {
+        throw new Error('Authentication error with Groq API.')
+      }
+
+      if (attempt >= 2) {
+        throw new Error(`Failed to parse AI response: ${err?.message || 'Unknown error'}`)
+      }
+    }
+  }
+
+  throw lastError || new Error('Failed to score proposal')
 }

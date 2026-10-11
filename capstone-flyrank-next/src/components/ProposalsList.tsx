@@ -25,7 +25,7 @@ export interface ProposalItem {
   job_text: string
   status: ProposalStatus | string
   proposal_text: string | null
-  score: number | null
+  score: number | Record<string, unknown> | null
   created_at: string
 }
 
@@ -390,11 +390,21 @@ export default function ProposalsList() {
                     )}
 
                     {/* Score badge if score exists */}
-                    {typeof item.score === 'number' && item.score !== null && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                        Score: {item.score}
-                      </span>
-                    )}
+                    {(() => {
+                      const numericScore = typeof item.score === 'number' ? item.score : item.score?.overall
+                      if (typeof numericScore !== 'number' || isNaN(numericScore)) return null
+                      const badgeColor =
+                        numericScore >= 80
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : numericScore >= 60
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-rose-50 text-rose-800 border-rose-200'
+                      return (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${badgeColor}`}>
+                          Score: {numericScore}
+                        </span>
+                      )
+                    })()}
 
                     {/* Created date */}
                     <span className="inline-flex items-center gap-1 text-xs text-[var(--muted)]">
@@ -473,7 +483,7 @@ export default function ProposalsList() {
             </p>
 
             <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-700 italic border border-gray-200 line-clamp-3">
-              "{deleteTarget.job_text?.slice(0, 140) || 'Untitled Proposal'}"
+              &ldquo;{deleteTarget.job_text?.slice(0, 140) || 'Untitled Proposal'}&rdquo;
             </div>
 
             {deleteError && (

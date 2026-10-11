@@ -56,6 +56,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
         initialTone={initialTone}
         profile={profile}
         projects={projects || []}
+        initialScore={proposal.score}
       />
     </div>
   )
