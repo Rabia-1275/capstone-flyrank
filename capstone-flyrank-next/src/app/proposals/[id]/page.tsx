@@ -3,6 +3,12 @@ import { redirect, notFound } from 'next/navigation'
 import ProposalEditor from '@/components/ProposalEditor'
 
 import ProposalStatusSelect from '@/components/ProposalStatusSelect'
+import { formatPlatformName } from '@/lib/format'
+
+export const metadata = {
+  title: 'Proposal Details',
+  description: 'View, edit, regenerate, and score your tailored freelance proposal.',
+}
 
 export default async function ProposalPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
@@ -41,7 +47,12 @@ export default async function ProposalPage({ params }: { params: Promise<{ id: s
   return (
     <div className="mt-8 max-w-4xl mx-auto pb-12">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-[var(--foreground)]">Proposal</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)]">Proposal</h1>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            {formatPlatformName(proposal.platform)}
+          </span>
+        </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-[var(--muted)]">Status:</span>
           <ProposalStatusSelect

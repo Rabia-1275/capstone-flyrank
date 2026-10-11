@@ -17,6 +17,7 @@ import {
   Layers,
   Filter,
 } from 'lucide-react'
+import { formatPlatformName } from '@/lib/format'
 
 export interface ProposalItem {
   id: string
@@ -42,6 +43,10 @@ const PLATFORM_BADGE_CONFIG: Record<string, { label: string; badgeClass: string 
     label: 'Freelancer',
     badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
   },
+  peopleperhour: {
+    label: 'PeoplePerHour',
+    badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+  },
   custom: {
     label: 'Custom',
     badgeClass: 'bg-gray-100 text-gray-800 border-gray-200',
@@ -51,16 +56,17 @@ const PLATFORM_BADGE_CONFIG: Record<string, { label: string; badgeClass: string 
 function getPlatformBadge(platform: string) {
   const normalized = platform?.toLowerCase() || 'custom'
   const config = PLATFORM_BADGE_CONFIG[normalized]
+  const label = formatPlatformName(platform)
   if (config) {
     return (
       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${config.badgeClass}`}>
-        {config.label}
+        {label}
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border bg-gray-100 text-gray-800 border-gray-200 capitalize">
-      {platform || 'Other'}
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border bg-gray-100 text-gray-800 border-gray-200">
+      {label}
     </span>
   )
 }
@@ -263,6 +269,7 @@ export default function ProposalsList() {
               <option value="upwork">Upwork</option>
               <option value="fiverr">Fiverr</option>
               <option value="freelancer">Freelancer</option>
+              <option value="peopleperhour">PeoplePerHour</option>
               <option value="custom">Custom / Other</option>
             </select>
           </div>
@@ -423,7 +430,7 @@ export default function ProposalsList() {
                 </div>
 
                 {/* Right block: Status select & actions */}
-                <div className="flex items-center gap-3 flex-shrink-0 self-start md:self-center">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap md:flex-nowrap shrink-0 self-start md:self-center">
                   {/* Status control */}
                   <ProposalStatusSelect
                     proposalId={item.id}
@@ -468,7 +475,7 @@ export default function ProposalsList() {
           aria-modal="true"
           aria-labelledby="delete-modal-title"
         >
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl border border-gray-100 space-y-4">
             <div className="flex items-center gap-3 text-rose-600">
               <div className="p-2 rounded-full bg-rose-100">
                 <Trash2 className="h-5 w-5" />

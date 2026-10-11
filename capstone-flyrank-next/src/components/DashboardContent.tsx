@@ -14,6 +14,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import type { DashboardData, BreakdownRow, WeekBucket } from '@/lib/dashboard'
+import { formatPlatformName, formatToneName } from '@/lib/format'
 
 // ── Tooltip ────────────────────────────────────────────────────────────
 
@@ -72,15 +73,15 @@ function SummaryCard({
   iconColor: string
 }) {
   return (
-    <div className="relative bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-3">
+    <div className="relative bg-white border border-gray-100 rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-2.5">
         <div className={`p-2 rounded-lg ${iconColor}`}>
           <Icon size={18} />
         </div>
         {tooltip && <InfoTooltip text={tooltip} />}
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      <p className="text-sm text-gray-500 mt-1 flex items-center flex-wrap">
+      <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-xs sm:text-sm text-gray-500 mt-1 flex items-center flex-wrap">
         {label}
         {n !== undefined && <SmallSample n={n} />}
       </p>
@@ -141,6 +142,7 @@ function WeeklyChart({ buckets }: { buckets: WeekBucket[] }) {
 function BreakdownTable({ title, icon: Icon, rows }: { title: string; icon: React.ElementType; rows: BreakdownRow[] }) {
   if (rows.length === 0) return null
 
+  const isPlatform = title.toLowerCase().includes('platform')
   const hasScores = rows.some(r => r.avgScoreWon !== null || r.avgScoreNotWon !== null)
 
   return (
@@ -149,34 +151,48 @@ function BreakdownTable({ title, icon: Icon, rows }: { title: string; icon: Reac
         <Icon size={18} className="text-indigo-600" />
         <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto -mx-5 px-5 sm:mx-0 sm:px-0">
+        <table className="w-full text-sm min-w-[560px]">
           <thead>
             <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
-              <th className="pb-2 font-medium">{title.includes('Platform') ? 'Platform' : 'Tone'}</th>
-              <th className="pb-2 font-medium text-center">Submitted</th>
-              <th className="pb-2 font-medium text-center">Replied</th>
-              <th className="pb-2 font-medium text-center">Won</th>
-              <th className="pb-2 font-medium text-center">
+              <th className="pb-3 px-3 font-semibold text-gray-700 whitespace-nowrap min-w-[130px]">
+                {isPlatform ? 'Platform' : 'Tone'}
+              </th>
+              <th className="pb-3 px-3 font-semibold text-gray-700 text-center whitespace-nowrap min-w-[85px]">
+                Submitted
+              </th>
+              <th className="pb-3 px-3 font-semibold text-gray-700 text-center whitespace-nowrap min-w-[85px]">
+                Replied
+              </th>
+              <th className="pb-3 px-3 font-semibold text-gray-700 text-center whitespace-nowrap min-w-[80px]">
+                Won
+              </th>
+              <th className="pb-3 px-3 font-semibold text-gray-700 text-center whitespace-nowrap min-w-[105px]">
                 Win Rate
                 <InfoTooltip text="won / submitted" />
               </th>
               {hasScores && (
                 <>
-                  <th className="pb-2 font-medium text-center">Avg Score (Won)</th>
-                  <th className="pb-2 font-medium text-center">Avg Score (Other)</th>
+                  <th className="pb-3 px-3 font-semibold text-gray-700 text-center whitespace-nowrap min-w-[115px]">
+                    Avg Score (Won)
+                  </th>
+                  <th className="pb-3 px-3 font-semibold text-gray-700 text-center whitespace-nowrap min-w-[115px]">
+                    Avg Score (Other)
+                  </th>
                 </>
               )}
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.label} className="border-b border-gray-50 last:border-0">
-                <td className="py-2.5 font-medium text-gray-800 capitalize">{row.label}</td>
-                <td className="py-2.5 text-center text-gray-600">{row.submitted}</td>
-                <td className="py-2.5 text-center text-gray-600">{row.replied}</td>
-                <td className="py-2.5 text-center text-gray-600">{row.won}</td>
-                <td className="py-2.5 text-center">
+              <tr key={row.label} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
+                <td className="py-3 px-3 font-medium text-gray-800 whitespace-nowrap">
+                  {isPlatform ? formatPlatformName(row.label) : formatToneName(row.label)}
+                </td>
+                <td className="py-3 px-3 text-center text-gray-600">{row.submitted}</td>
+                <td className="py-3 px-3 text-center text-gray-600">{row.replied}</td>
+                <td className="py-3 px-3 text-center text-gray-600">{row.won}</td>
+                <td className="py-3 px-3 text-center">
                   <span className="inline-flex items-center">
                     {fmtRate(row.winRate)}
                     <SmallSample n={row.submitted} />
@@ -184,8 +200,8 @@ function BreakdownTable({ title, icon: Icon, rows }: { title: string; icon: Reac
                 </td>
                 {hasScores && (
                   <>
-                    <td className="py-2.5 text-center text-gray-600">{fmtScore(row.avgScoreWon)}</td>
-                    <td className="py-2.5 text-center text-gray-600">{fmtScore(row.avgScoreNotWon)}</td>
+                    <td className="py-3 px-3 text-center text-gray-600">{fmtScore(row.avgScoreWon)}</td>
+                    <td className="py-3 px-3 text-center text-gray-600">{fmtScore(row.avgScoreNotWon)}</td>
                   </>
                 )}
               </tr>
@@ -238,7 +254,7 @@ export default function DashboardContent({ data }: { data: DashboardData }) {
   return (
     <div className="space-y-6">
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <SummaryCard
           icon={FileText}
           label="Total Proposals"
