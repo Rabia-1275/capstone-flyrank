@@ -1,0 +1,43 @@
+
+> capstone-flyrank-next@0.1.0 test:coverage
+> vitest run --coverage
+
+
+ RUN  v5.0.4 U:/FlyRank/capstone-project/capstone-flyrank-next
+      Coverage enabled with v8
+
+
+ Test Files  11 passed (11)
+      Tests  127 passed (127)
+   Start at  10:39:56
+   Duration  14.02s (tests 40%, environment 30%, setup 15%, import 9%, worker 6%, transform 1%)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   58.89 |    42.99 |   48.52 |   60.09 |                   
+ components        |   50.17 |    37.68 |   37.68 |   52.29 |                   
+  ...rdContent.tsx |       0 |        0 |       0 |       0 | 17-254            
+  ...Dashboard.tsx |       0 |        0 |       0 |       0 | 4-96              
+  Navbar.tsx       |     100 |      100 |     100 |     100 |                   
+  ...posalForm.tsx |   72.97 |    70.96 |   41.66 |   77.14 | ...42-154,171-197 
+  ...pleteness.tsx |     100 |    93.75 |     100 |     100 | 17                
+  ProfileForm.tsx  |   84.09 |    72.22 |   92.85 |   83.33 | 59-70             
+  ...tsSection.tsx |       0 |        0 |       0 |       0 | 4-137             
+  ...salEditor.tsx |    58.6 |    39.66 |   35.89 |   62.96 | ...36-392,424-616 
+  ...tusSelect.tsx |   92.85 |    61.53 |      75 |   92.85 | 41-42             
+  ...osalsList.tsx |   56.25 |    53.12 |   53.84 |   57.94 | ...96-398,477-543 
+  SettingsForm.tsx |       0 |        0 |       0 |       0 | 6-311             
+ lib               |   96.94 |    84.28 |   96.77 |   96.42 |                   
+  dashboard.ts     |   97.29 |    87.09 |   96.15 |   96.49 | 55,86             
+  format.ts        |     100 |      100 |     100 |     100 |                   
+  usage.ts         |   94.73 |    70.83 |     100 |   94.73 | 55,126            
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 58.89% ( 414/703 )
+Branches     : 42.99% ( 264/614 )
+Functions    : 48.52% ( 82/169 )
+Lines        : 60.09% ( 381/634 )
+================================================================================

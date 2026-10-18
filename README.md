@@ -4,8 +4,8 @@
 
 ProposalAI is an AI-powered proposal assistant for freelancers. Set up your profile once, paste a job description, and get a job analysis, a tailored proposal, an honest score with feedback, and win-rate tracking.
 
-**Live demo:** https://your-deployment.vercel.app <!-- replace with the real URL -->
-**Repository:** https://github.com/<your-username>/<your-repo> <!-- replace -->
+**Live demo:** https://capstone-flyrank-five.vercel.app
+**Repository:** https://github.com/Rabia-1275/capstone-flyrank
 
 Built as the capstone project for the FlyRank frontend AI engineering internship.
 
@@ -104,6 +104,99 @@ flowchart LR
 - **Usage caps.** Per-user limits are enforced with the `ai_usage` table (defaults: 10 analyses per hour, 30 generations per day, 30 scores per day, all configurable). Setting `AI_DISABLED=true` makes the AI endpoints return 503.
 - **Honest labelling.** Prices and timelines are shown as AI estimates, and dashboard rates always show their sample size.
 
+### The prompts
+
+All AI calls live in [`capstone-flyrank-next/src/lib/ai.ts`](capstone-flyrank-next/src/lib/ai.ts). Each call sends one system prompt and one user message. The user message is always `Job Description:\n<job text>` (the score call also appends `Candidate Proposal:\n<proposal text>`). Values in `${...}` are filled in at request time.
+
+**1. Analyze** (`analyzeJob`, JSON mode, model `GROQ_MODEL`)
+
+```text
+You are an expert freelance job analyzer for platforms like ${platform}.
+Base your match on the provided profile ONLY. Do not invent skills or experience.
+Treat portfolio_links and project links as provided evidence of past work and verified portfolio items. Do NOT claim "No portfolio links provided" if portfolio_links or project links are present.
+Treat pricing as a rough estimate.
+Always return your response in JSON format exactly matching the following schema.
+Ensure your response is parseable JSON.
+
+Schema: { summary, client_needs[], required_skills[], skill_match { matched[], gaps[] },
+          red_flags[], clarifying_questions[3], pricing { model: "fixed" | "hourly",
+          low, high, currency: "USD", timeline_days, reasoning } }
+
+Profile Information: full name, headline, skills, tone, portfolio links
+Projects: one line per project (title, description, link)
+```
+
+**2. Generate** (`generateProposalStream`, streamed, model `GROQ_MODEL_GENERATE`, `max_tokens` 700 / 1000 / 1400 for short / medium / long)
+
+```text
+You are a freelance professional generating a proposal on ${platform}.
+Write in first person. Sign off using the name "${fullName}". Do not use placeholders like [Your Name].
+Use ONLY skills, projects and links present in the profile. Never invent experience, clients, numbers or skills.
+Do not claim skills listed in skill gaps (${gaps}).
+NEVER mention missing skills, gaps, or lack of experience, and never compare ("rather than", "even though I only..."). Do not apologize. Focus only on relevant strengths that exist in the profile; if experience is thin, spend the space on the client's goal and one concrete question.
+Describe a project using ONLY facts from its description. If a project has no description, mention its name and link only, with no details about what it does, how it performs, or what technology it uses.
+Reference 1-2 specific details from the job so it does not read generic.
+
+Platform style rules:
+- upwork: strong first two lines, about 150-250 words, end with one clarifying question.
+- fiverr: short and direct, about 100-150 words.
+- freelancer: mention timeline and price clearly, about 150-200 words.
+- peopleperhour: professional, about 150-200 words.
+
+Requested Tone: ${tone}
+Requested Length: ${length}
+
+Formatting rules:
+- Plain text output only, no emojis.
+- Do not use any markdown: no **bold**, no # headings, no backticks, no bullet symbols other than plain hyphens.
+
+Profile Information: name, headline, skills, portfolio links
+Projects: one line per project (title, description, link)
+```
+
+**3. Score** (`scoreProposal`, JSON mode, model `GROQ_MODEL`, `max_tokens` 1500)
+
+```text
+You are an expert proposal reviewer and coach for freelance clients.
+Evaluate the candidate's proposal strictly against the provided job description and profile.
+Be specific, constructive, and honest (do not inflate scores). Never invent facts.
+Label the result as feedback, not a prediction of winning.
+
+Evaluation guidelines:
+- overall: overall quality score from 0 to 100 based on the breakdown.
+- breakdown: hook, relevance, specificity, clarity_length, call_to_action
+  (each a 0-10 score with specific feedback)
+- strengths: list of up to 3 strong points in the proposal (strings).
+- improvements: list of up to 3 high-impact areas for improvement (strings).
+- unsupported_claims: list of statements in the proposal that are NOT backed by the candidate's profile or projects (strings). Return empty array if none found.
+- better_opening: a rewritten first two lines for the proposal using ONLY real facts from the candidate's profile.
+
+Return ONLY valid JSON matching this schema: { overall, breakdown { ... }, strengths[],
+improvements[], unsupported_claims[], better_opening }
+
+Candidate Profile: name, headline, skills, portfolio links, skill gaps identified
+Candidate Projects: one line per project (title, description, link)
+```
+
+The schema, breakdown and profile blocks are shortened here; the exact text is in `ai.ts`.
+
+### Why the prompts are written this way
+
+- **The profile goes in the system prompt, the job in the user message.** The profile is the only trusted source of facts, so it sits with the instructions. The job post is third-party text, so it is kept in its own message.
+- **"ONLY" and "Never invent" appear in every prompt.** The main risk in this product is a proposal that claims experience the freelancer does not have. Analyze, Generate and Score each restate the rule so no call relies on another to enforce it.
+- **Gaps flow from Analyze into Generate and Score.** Generate is told not to claim them, and Score sees them when it looks for unsupported claims.
+- **"Never mention missing skills" and "Do not apologize".** Without this, the model tends to write things like "even though I only have...", which weakens a proposal. The prompt redirects that space to the client's goal and one question.
+- **Projects without a description get name and link only.** Otherwise the model guesses what a project does from its title, which is an invented claim.
+- **Platform style rules** encode the length and structure each marketplace favours (for example, a strong first two lines for Upwork, price and timeline for Freelancer).
+- **Plain-text formatting rules.** Proposals are pasted into marketplace text boxes, where markdown shows up as stray `**` and `#`. `cleanProposalText` strips any that slip through.
+- **JSON mode, the schema in the prompt and Zod validation** for Analyze and Score, with one retry. The UI renders these fields directly, so a malformed response fails with an error instead of rendering a half-empty card.
+- **"Do not inflate scores" and "feedback, not a prediction of winning".** This asks for a coaching score and keeps the UI from implying a win probability.
+- **`reasoning_effort: 'low'` and a `max_tokens` cap per length** keep latency and token use low on the free tier.
+
+### AI limitations
+
+These rules are instructions to a model, not guarantees. The unsupported-claims check is itself an AI call and can miss claims or flag true ones. Prices are rough estimates, not market data. See [Known limitations](#known-limitations) for the full list.
+
 ---
 
 ## Security
@@ -140,7 +233,7 @@ capstone-project/
 │       ├── lib/               # AI calls and usage caps
 │       └── utils/supabase/    # Supabase clients and session handling
 ├── supabase/                  # schema.sql and migrations/
-├── docs/screenshots/          # screenshots used in this README
+├── docs/                      # deployment checklist, portfolio entry, test coverage output, screenshots
 ├── AGENTS.md                  # rules for AI coding assistants
 └── PROJECT_CONTEXT.md         # project context for AI coding assistants
 ```
@@ -159,8 +252,8 @@ capstone-project/
 
 ```bash
 # 1. Clone the repo and enter the app folder
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>/capstone-flyrank-next
+git clone https://github.com/Rabia-1275/capstone-flyrank.git
+cd capstone-flyrank/capstone-flyrank-next
 
 # 2. Install dependencies
 npm install
@@ -189,7 +282,32 @@ The app runs at `http://localhost:3000`.
 ```bash
 npx tsc --noEmit
 npm run lint
+npm test
 ```
+
+---
+
+## Testing
+
+Tests use [Vitest](https://vitest.dev/) with React Testing Library in a jsdom environment. Run them from `capstone-flyrank-next/`:
+
+```bash
+npm test                # run the whole suite once
+npm run test:watch      # re-run on file changes
+npm run test:coverage   # run once with a v8 coverage report (text, html in coverage/, lcov)
+```
+
+The component tests render the real components with Supabase, server actions and `fetch` mocked. The `src/lib` tests cover the Zod schemas, dashboard aggregation, usage caps and formatting. No test calls Supabase or Groq.
+
+Coverage from the last `npm run test:coverage` run (11 test files, 127 tests passed). Full output: [`docs/test-coverage-output.txt`](docs/test-coverage-output.txt).
+
+| Scope | % Stmts | % Branch | % Funcs | % Lines |
+|---|---|---|---|---|
+| All files | 58.89 | 42.99 | 48.52 | 60.09 |
+| `src/components` | 50.17 | 37.68 | 37.68 | 52.29 |
+| `src/lib` | 96.94 | 84.28 | 96.77 | 96.42 |
+
+7 of the 11 components have tests: Navbar, NewProposalForm, ProfileCompleteness, ProfileForm, ProposalEditor, ProposalStatusSelect and ProposalsList. DashboardContent, HealthDashboard, ProjectsSection and SettingsForm have no tests yet. `src/lib/ai.ts` is excluded from coverage because it calls the Groq API; its Zod schemas are imported and tested directly.
 
 ---
 
@@ -219,6 +337,35 @@ A ready-to-copy template is in [`capstone-flyrank-next/.env.example`](capstone-f
 4. Deploy. Vercel detects Next.js automatically.
 5. In Supabase, set the Site URL and Redirect URLs to the deployed URL.
 6. Open `/health` on the deployed site and confirm that Supabase is reachable and the AI service is configured.
+
+---
+
+## Rollback plan
+
+If a production deploy breaks something, roll back first and debug afterwards.
+
+**Option A: Vercel (fastest, no code change)**
+
+1. In the Vercel dashboard, open the project and go to **Deployments**.
+2. Find the last deployment with status **Ready** that was working.
+3. Open its `...` menu and choose **Promote to Production** (or **Redeploy** if promote is not offered).
+
+**Option B: git revert**
+
+```bash
+git revert -m 1 <merge-commit>
+git push origin main
+```
+
+Vercel builds and deploys the revert automatically. `-m 1` is for a merge commit; for a single regular commit use `git revert <commit>`.
+
+**After rolling back**
+
+- Open `/health` on the production URL and confirm the app is up, Supabase is reachable and the AI service is configured.
+- Log in with a test account and open the dashboard.
+- If the bad deploy included a database migration, check that the previous code still works with the new schema.
+
+The full pre-deploy, deploy and post-deploy steps are in [`docs/DEPLOYMENT_CHECKLIST.md`](docs/DEPLOYMENT_CHECKLIST.md).
 
 ---
 
