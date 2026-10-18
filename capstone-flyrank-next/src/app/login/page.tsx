@@ -1,10 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { login } from '@/app/auth/actions'
 import Link from 'next/link'
 
 export default function LoginPage() {
+  const fieldId = useId()
+  const emailId = `${fieldId}-email`
+  const passwordId = `${fieldId}-password`
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -26,9 +29,9 @@ export default function LoginPage() {
       
       <form action={handleSubmit} className="flex flex-col gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]" htmlFor="email">Email</label>
+          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]" htmlFor={emailId}>Email</label>
           <input 
-            id="email" 
+            id={emailId} 
             name="email" 
             type="email" 
             required 
@@ -36,9 +39,9 @@ export default function LoginPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]" htmlFor="password">Password</label>
+          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]" htmlFor={passwordId}>Password</label>
           <input 
-            id="password" 
+            id={passwordId} 
             name="password" 
             type="password" 
             required 
@@ -54,7 +57,7 @@ export default function LoginPage() {
         </button>
       </form>
       <div className="mt-4 text-sm text-center text-[var(--muted)]">
-        Don&apos;t have an account? <Link href="/signup" className="text-[var(--primary)] hover:underline">Sign up</Link>
+        Don&apos;t have an account? <Link href="/signup" className="text-[var(--primary)] underline underline-offset-2">Sign up</Link>
       </div>
     </div>
   )

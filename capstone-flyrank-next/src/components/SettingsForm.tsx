@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { updateSettings, deleteAllProposals } from '@/app/settings/actions'
 import { signout } from '@/app/auth/actions'
 import {
@@ -26,6 +26,11 @@ export default function SettingsForm({
   initialLength,
 }: SettingsFormProps) {
   // Preferences state
+  const fieldId = useId()
+  const emailFieldId = `${fieldId}-account-email`
+  const toneFieldId = `${fieldId}-default-tone`
+  const lengthFieldId = `${fieldId}-default-length`
+  const confirmDeleteId = `${fieldId}-confirm-delete`
   const [tone, setTone] = useState(initialTone || 'professional')
   const [length, setLength] = useState(initialLength || 'medium')
   const [isSaving, setIsSaving] = useState(false)
@@ -128,19 +133,19 @@ export default function SettingsForm({
 
         <div className="space-y-4 max-w-xl">
           <div>
-            <label htmlFor="account_email" className="block text-sm font-medium text-[var(--foreground)] mb-1">
+            <label htmlFor={emailFieldId} className="block text-sm font-medium text-[var(--foreground)] mb-1">
               Account Email
             </label>
             <div className="relative">
               <input
-                id="account_email"
+                id={emailFieldId}
                 type="email"
                 value={email}
                 readOnly
                 aria-label="Account Email"
                 className="w-full p-2.5 bg-gray-50 text-gray-700 border border-gray-300 rounded-[var(--radius)] cursor-not-allowed select-all focus:outline-hidden"
               />
-              <span className="absolute right-3 top-2.5 text-xs font-medium text-[var(--muted)] bg-gray-200 px-2 py-0.5 rounded">
+              <span className="absolute right-3 top-2.5 text-xs font-medium text-gray-700 bg-gray-200 px-2 py-0.5 rounded">
                 Read only
               </span>
             </div>
@@ -200,13 +205,13 @@ export default function SettingsForm({
         <form onSubmit={handleSavePreferences} className="space-y-5 max-w-xl">
           <div>
             <label
-              htmlFor="default_tone"
+              htmlFor={toneFieldId}
               className="block text-sm font-medium text-[var(--foreground)] mb-1"
             >
               Default Tone
             </label>
             <select
-              id="default_tone"
+              id={toneFieldId}
               value={tone}
               onChange={(e) => setTone(e.target.value)}
               className="w-full p-2.5 border border-gray-300 rounded-[var(--radius)] bg-white text-[var(--foreground)] focus:ring-2 focus:ring-[var(--primary)] focus:outline-hidden"
@@ -228,13 +233,13 @@ export default function SettingsForm({
 
           <div>
             <label
-              htmlFor="default_length"
+              htmlFor={lengthFieldId}
               className="block text-sm font-medium text-[var(--foreground)] mb-1"
             >
               Default Length
             </label>
             <select
-              id="default_length"
+              id={lengthFieldId}
               value={length}
               onChange={(e) => setLength(e.target.value)}
               className="w-full p-2.5 border border-gray-300 rounded-[var(--radius)] bg-white text-[var(--foreground)] focus:ring-2 focus:ring-[var(--primary)] focus:outline-hidden"
@@ -299,19 +304,19 @@ export default function SettingsForm({
 
           <div className="space-y-2">
             <label
-              htmlFor="confirm_delete"
+              htmlFor={confirmDeleteId}
               className="block text-xs font-medium text-red-900 uppercase tracking-wider"
             >
               Type <span className="font-mono font-bold">DELETE</span> to confirm
             </label>
             <input
-              id="confirm_delete"
+              id={confirmDeleteId}
               type="text"
               value={confirmInput}
               onChange={(e) => setConfirmInput(e.target.value)}
               placeholder="Type DELETE"
               disabled={isDeleting}
-              className="w-full p-2.5 bg-white border border-red-300 rounded-[var(--radius)] text-red-900 placeholder-red-300 focus:outline-hidden focus:ring-2 focus:ring-red-500 font-mono text-sm disabled:opacity-50"
+              className="w-full p-2.5 bg-white border border-red-300 rounded-[var(--radius)] text-red-900 placeholder-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-500 font-mono text-sm disabled:opacity-50"
             />
           </div>
 

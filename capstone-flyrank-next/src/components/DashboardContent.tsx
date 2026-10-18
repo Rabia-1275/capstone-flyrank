@@ -31,7 +31,7 @@ function InfoTooltip({ text }: { text: string }) {
       role="button"
       aria-label={text}
     >
-      <Info size={14} className="text-gray-400" />
+      <Info size={14} className="text-gray-600" />
       {show && (
         <span className="absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg whitespace-normal">
           {text}
@@ -45,9 +45,9 @@ function InfoTooltip({ text }: { text: string }) {
 // ── Small sample warning ───────────────────────────────────────────────
 
 function SmallSample({ n, threshold = 5 }: { n: number; threshold?: number }) {
-  if (n >= threshold) return <span className="text-xs text-gray-400 ml-1">(n={n})</span>
+  if (n >= threshold) return <span className="text-xs text-gray-600 ml-1">(n={n})</span>
   return (
-    <span className="text-xs text-amber-500 ml-1" title="Not enough data yet">
+    <span className="text-xs text-amber-700 ml-1" title="Not enough data yet">
       (n={n}) ⚠
     </span>
   )
@@ -85,7 +85,7 @@ function SummaryCard({
         {label}
         {n !== undefined && <SmallSample n={n} />}
       </p>
-      {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+      {subtext && <p className="text-xs text-gray-600 mt-1">{subtext}</p>}
     </div>
   )
 }
@@ -128,7 +128,7 @@ function WeeklyChart({ buckets }: { buckets: WeekBucket[] }) {
                   }}
                 />
               </div>
-              <span className="text-[10px] text-gray-400 truncate w-full text-center">{b.label}</span>
+              <span className="text-[10px] text-gray-600 truncate w-full text-center">{b.label}</span>
             </div>
           )
         })}
@@ -225,7 +225,7 @@ function EmptyState() {
       <p className="text-sm text-gray-500 mb-1">
         Create your first proposal to start tracking your stats.
       </p>
-      <p className="text-xs text-gray-400 mb-6">
+      <p className="text-xs text-gray-600 mb-6">
         Tip: Update statuses in{' '}
         <Link href="/proposals" className="text-indigo-600 hover:text-indigo-700 underline">
           Proposals

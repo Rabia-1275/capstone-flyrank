@@ -320,7 +320,7 @@ export default function ProposalsList() {
                 setPlatformFilter('all')
                 setSearchQuery('')
               }}
-              className="text-xs text-[var(--primary)] hover:underline font-medium"
+              className="text-xs text-[var(--primary)] underline underline-offset-2 font-medium"
             >
               Clear filters
             </button>
@@ -397,7 +397,7 @@ export default function ProposalsList() {
               setPlatformFilter('all')
               setSearchQuery('')
             }}
-            className="mt-2 text-xs text-[var(--primary)] underline font-medium"
+            className="mt-2 text-xs text-[var(--primary)] underline underline-offset-2 font-medium"
           >
             Clear filters
           </button>
@@ -480,7 +480,7 @@ export default function ProposalsList() {
                   {/* Link to detail */}
                   <Link
                     href={`/proposals/${item.id}`}
-                    className="p-1.5 text-gray-400 hover:text-[var(--primary)] rounded-md hover:bg-gray-100 transition-colors"
+                    className="p-1.5 text-gray-600 hover:text-[var(--primary)] rounded-md hover:bg-gray-100 transition-colors"
                     title="View proposal detail"
                   >
                     <ExternalLink className="h-4 w-4" />
@@ -493,7 +493,7 @@ export default function ProposalsList() {
                       setDeleteTarget(item)
                       setDeleteError(null)
                     }}
-                    className="p-1.5 text-gray-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
+                    className="p-1.5 text-gray-600 hover:text-rose-700 rounded-md hover:bg-rose-50 transition-colors"
                     title="Delete proposal"
                   >
                     <Trash2 className="h-4 w-4" />

@@ -4,8 +4,14 @@
   --background: #ffffff;
   --foreground: #171717;
   --primary: #4f46e5;
-  --muted: #6b7280;
+  /* gray-600: 7.5:1 on white, 6.1:1 on gray-200 (WCAG AA 4.5:1) */
+  --muted: #4b5563;
   --radius: 0.75rem;
+}
+
+::placeholder {
+  color: #4b5563;
+  opacity: 1;
 }
 
 @theme inline {

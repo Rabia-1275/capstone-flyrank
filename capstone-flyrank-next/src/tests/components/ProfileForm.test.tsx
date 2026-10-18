@@ -108,6 +108,14 @@ describe('ProfileForm – skills tag input', () => {
   })
 })
 
+describe('ProfileForm – accessible labels', () => {
+  it('associates Full Name and Tone with getByLabelText', () => {
+    setup()
+    expect(screen.getByLabelText(/full name/i)).toHaveValue('Jane Doe')
+    expect(screen.getByLabelText(/^tone$/i)).toHaveValue('professional')
+  })
+})
+
 // ─── Portfolio link validation ────────────────────────────────────────────────
 
 describe('ProfileForm – portfolio link validation', () => {

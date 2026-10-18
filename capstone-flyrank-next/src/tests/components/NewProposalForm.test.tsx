@@ -62,6 +62,11 @@ describe('NewProposalForm – initial state', () => {
     setup(false)
     expect(screen.queryByText(/your profile is mostly empty/i)).toBeNull()
   })
+
+  it('associates the Platform select with an accessible name', () => {
+    setup()
+    expect(screen.getByLabelText(/^platform$/i)).toHaveValue('upwork')
+  })
 })
 
 // ─── Minimum 50-char validation ───────────────────────────────────────────────

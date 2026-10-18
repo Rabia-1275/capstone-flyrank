@@ -302,13 +302,13 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
               <div className="mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Matched</h3>
                 <ul className="list-disc pl-5 text-[var(--foreground)]">
-                  {analysis.skill_match.matched.length > 0 ? analysis.skill_match.matched.map((s, i) => <li key={i}>{s}</li>) : <li className="text-gray-400 italic">None</li>}
+                  {analysis.skill_match.matched.length > 0 ? analysis.skill_match.matched.map((s, i) => <li key={i}>{s}</li>) : <li className="text-gray-600 italic">None</li>}
                 </ul>
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Gaps</h3>
                 <ul className="list-disc pl-5 text-red-600">
-                  {analysis.skill_match.gaps.length > 0 ? analysis.skill_match.gaps.map((s, i) => <li key={i}>{s}</li>) : <li className="text-gray-400 italic">None</li>}
+                  {analysis.skill_match.gaps.length > 0 ? analysis.skill_match.gaps.map((s, i) => <li key={i}>{s}</li>) : <li className="text-gray-600 italic">None</li>}
                 </ul>
               </div>
             </div>
@@ -429,7 +429,7 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
           {scoring ? 'Scoring...' : 'Score proposal'}
         </button>
         {text !== savedText && (
-          <span className="text-red-500 italic">Unsaved changes</span>
+          <span className="text-red-700 italic">Unsaved changes</span>
         )}
       </div>
 
@@ -558,7 +558,7 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
                     </li>
                   ))
                 ) : (
-                  <li className="text-gray-400 italic">None noted</li>
+                  <li className="text-gray-600 italic">None noted</li>
                 )}
               </ul>
             </div>
@@ -577,7 +577,7 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
                     </li>
                   ))
                 ) : (
-                  <li className="text-gray-400 italic">None noted</li>
+                  <li className="text-gray-600 italic">None noted</li>
                 )}
               </ul>
             </div>

@@ -122,20 +122,20 @@ export default function ProjectsSection({ projects }: { projects: Project[] }) {
             <div key={project.id} className="border p-4 rounded-[var(--radius)] flex justify-between items-start gap-3">
               <div className="min-w-0 flex-1">
                 <h4 className="font-semibold text-lg truncate">{project.title}</h4>
-                {project.link && <a href={project.link} target="_blank" rel="noreferrer" className="text-sm text-[var(--primary)] hover:underline block mb-1 truncate break-all">{project.link}</a>}
+                {project.link && <a href={project.link} target="_blank" rel="noreferrer" className="text-sm text-[var(--primary)] underline underline-offset-2 block mb-1 truncate break-all">{project.link}</a>}
                 {project.description && <p className="text-sm text-[var(--muted)] whitespace-pre-wrap break-words">{project.description}</p>}
               </div>
               <div className="flex gap-2">
                 <button 
                   onClick={() => setEditingProject(project)}
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm text-blue-700 underline underline-offset-2"
                   disabled={loading}
                 >
                   Edit
                 </button>
                 <button 
                   onClick={() => handleDelete(project.id)}
-                  className="text-sm text-red-600 hover:underline"
+                  className="text-sm text-red-700 underline underline-offset-2"
                   disabled={loading}
                 >
                   Delete
