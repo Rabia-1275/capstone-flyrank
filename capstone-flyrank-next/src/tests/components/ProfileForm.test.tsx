@@ -86,7 +86,7 @@ describe('ProfileForm – skills tag input', () => {
     // Attempt to add a 21st skill via keyboard
     fireEvent.keyDown(skillInput, { key: 'Enter', code: 'Enter' })
     // Still 20 tags
-    const tags = screen.getAllByRole('button', { name: /×/ })
+    const tags = screen.getAllByRole('button', { name: /remove skill/i })
     expect(tags.length).toBeLessThanOrEqual(20)
   })
 
@@ -95,9 +95,8 @@ describe('ProfileForm – skills tag input', () => {
     // Find the remove button for 'React'
     const tags = screen.getAllByText('React')
     expect(tags.length).toBeGreaterThan(0)
-    // Each skill span has a × button immediately after it
-    const removeButtons = screen.getAllByRole('button', { name: /×/ })
-    await user.click(removeButtons[0])
+    // Each skill tag has a × button labelled "Remove skill <name>"
+    await user.click(screen.getByRole('button', { name: 'Remove skill React' }))
     // React should be gone
     expect(screen.queryByText('React')).toBeNull()
   })
@@ -154,7 +153,7 @@ describe('ProfileForm – portfolio link validation', () => {
     const { user } = setup({ portfolio_links: ['https://mysite.com'] })
     const link = screen.getByText('https://mysite.com')
     expect(link).toBeTruthy()
-    const removeBtn = screen.getAllByRole('button', { name: /×/ })[0]
+    const removeBtn = screen.getByRole('button', { name: 'Remove link https://mysite.com' })
     await user.click(removeBtn)
     expect(screen.queryByText('https://mysite.com')).toBeNull()
   })

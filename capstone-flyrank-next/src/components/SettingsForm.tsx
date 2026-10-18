@@ -128,11 +128,12 @@ export default function SettingsForm({
 
         <div className="space-y-4 max-w-xl">
           <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+            <label htmlFor="account_email" className="block text-sm font-medium text-[var(--foreground)] mb-1">
               Account Email
             </label>
             <div className="relative">
               <input
+                id="account_email"
                 type="email"
                 value={email}
                 readOnly

@@ -84,8 +84,9 @@ export default function ProfileForm({ initialData }: { initialData: Profile | nu
         <input type="hidden" name="skills" value={JSON.stringify(skills)} />
         <input type="hidden" name="portfolio_links" value={JSON.stringify(links)} />
         <div>
-          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]">Full Name *</label>
+          <label htmlFor="full_name" className="block text-sm font-medium mb-1 text-[var(--foreground)]">Full Name *</label>
           <input 
+            id="full_name"
             name="full_name" 
             defaultValue={initialData?.full_name || ''} 
             required 
@@ -94,8 +95,9 @@ export default function ProfileForm({ initialData }: { initialData: Profile | nu
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]">Headline</label>
+          <label htmlFor="headline" className="block text-sm font-medium mb-1 text-[var(--foreground)]">Headline</label>
           <input 
+            id="headline"
             name="headline" 
             defaultValue={initialData?.headline || ''} 
             placeholder="e.g. Frontend developer & AI integrator"
@@ -104,8 +106,8 @@ export default function ProfileForm({ initialData }: { initialData: Profile | nu
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]">Tone</label>
-          <select name="tone" defaultValue={initialData?.tone || 'professional'} className="w-full p-2 border border-gray-300 rounded-[var(--radius)]">
+          <label htmlFor="tone" className="block text-sm font-medium mb-1 text-[var(--foreground)]">Tone</label>
+          <select id="tone" name="tone" defaultValue={initialData?.tone || 'professional'} className="w-full p-2 border border-gray-300 rounded-[var(--radius)]">
             <option value="professional">Professional</option>
             <option value="friendly">Friendly</option>
             <option value="confident">Confident</option>
@@ -114,16 +116,17 @@ export default function ProfileForm({ initialData }: { initialData: Profile | nu
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]">Skills (Max 20)</label>
+          <label htmlFor="skill-input" className="block text-sm font-medium mb-1 text-[var(--foreground)]">Skills (Max 20)</label>
           <div className="flex flex-wrap gap-2 mb-2">
             {skills.map(skill => (
               <span key={skill} className="bg-gray-100 text-sm px-2 py-1 rounded flex items-center gap-1">
                 {skill}
-                <button type="button" onClick={() => handleRemoveSkill(skill)} className="text-gray-500 hover:text-red-500">&times;</button>
+                <button type="button" onClick={() => handleRemoveSkill(skill)} aria-label={`Remove skill ${skill}`} className="text-gray-500 hover:text-red-500">&times;</button>
               </span>
             ))}
           </div>
           <input 
+            id="skill-input"
             value={skillInput}
             onChange={e => setSkillInput(e.target.value)}
             onKeyDown={handleAddSkill}
@@ -134,16 +137,17 @@ export default function ProfileForm({ initialData }: { initialData: Profile | nu
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]">Portfolio Links (Max 10)</label>
+          <label htmlFor="link-input" className="block text-sm font-medium mb-1 text-[var(--foreground)]">Portfolio Links (Max 10)</label>
           <div className="flex flex-col gap-2 mb-2">
             {links.map(link => (
               <span key={link} className="bg-gray-100 text-sm px-2 py-1 rounded flex items-center justify-between">
                 <a href={link} target="_blank" rel="noreferrer" className="text-[var(--primary)] hover:underline truncate max-w-[80%]">{link}</a>
-                <button type="button" onClick={() => handleRemoveLink(link)} className="text-gray-500 hover:text-red-500">&times;</button>
+                <button type="button" onClick={() => handleRemoveLink(link)} aria-label={`Remove link ${link}`} className="text-gray-500 hover:text-red-500">&times;</button>
               </span>
             ))}
           </div>
           <input 
+            id="link-input"
             value={linkInput}
             onChange={e => setLinkInput(e.target.value)}
             onKeyDown={handleAddLink}

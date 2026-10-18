@@ -66,8 +66,9 @@ export default function ProjectsSection({ projects }: { projects: Project[] }) {
         <form action={handleSubmit} className="flex flex-col gap-4 bg-gray-50 p-4 rounded border mb-4">
           <h3 className="font-semibold">{editingProject ? 'Edit Project' : 'New Project'}</h3>
           <div>
-            <label className="block text-sm font-medium mb-1">Title *</label>
+            <label htmlFor="project-title" className="block text-sm font-medium mb-1">Title *</label>
             <input 
+              id="project-title"
               name="title" 
               defaultValue={editingProject?.title || ''} 
               required 
@@ -75,16 +76,18 @@ export default function ProjectsSection({ projects }: { projects: Project[] }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label htmlFor="project-description" className="block text-sm font-medium mb-1">Description</label>
             <textarea 
+              id="project-description"
               name="description" 
               defaultValue={editingProject?.description || ''} 
               className="w-full p-2 border border-gray-300 rounded-[var(--radius)] h-24"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Link</label>
+            <label htmlFor="project-link" className="block text-sm font-medium mb-1">Link</label>
             <input 
+              id="project-link"
               name="link" 
               type="url"
               defaultValue={editingProject?.link || ''} 

@@ -91,6 +91,22 @@ describe('ProposalEditor – spinner while generating', () => {
   })
 })
 
+// ─── Accessible labels ────────────────────────────────────────────────────────
+
+describe('ProposalEditor – accessible labels', () => {
+  it('labels the tone and length selects and the proposal textarea', () => {
+    render(<ProposalEditor {...defaultProps()} />)
+    expect(screen.getByLabelText('Tone')).toHaveValue('professional')
+    expect(screen.getByLabelText('Length')).toHaveValue('medium')
+    expect(screen.getByLabelText('Proposal text')).toHaveValue('Some initial proposal text.')
+  })
+
+  it('gives the icon-only question copy buttons an accessible name', () => {
+    render(<ProposalEditor {...defaultProps()} />)
+    expect(screen.getByRole('button', { name: 'Copy question: Q1?' })).toBeTruthy()
+  })
+})
+
 // ─── Error box on failed response ─────────────────────────────────────────────
 
 describe('ProposalEditor – error box on fetch failure', () => {
@@ -121,6 +137,20 @@ describe('ProposalEditor – error box on fetch failure', () => {
     render(<ProposalEditor {...defaultProps({ initialText: '' })} />)
     await userEvent.click(screen.getByRole('button', { name: /generate/i }))
     await waitFor(() => expect(screen.getByText(/rate limit exceeded/i)).toBeTruthy())
+  })
+
+  it('announces the error box to screen readers with role="alert"', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'Generation failed' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+    render(<ProposalEditor {...defaultProps({ initialText: '' })} />)
+    await userEvent.click(screen.getByRole('button', { name: /generate/i }))
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(/generation failed/i)
+    expect(alert).toContainElement(screen.getByRole('button', { name: /retry/i }))
   })
 })
 

@@ -333,7 +333,7 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
               {analysis.clarifying_questions.map((q, i) => (
                 <div key={i} className="flex justify-between items-start bg-blue-50 p-3 rounded-[var(--radius)] border border-blue-100">
                   <span className="text-blue-900 pr-4">{q}</span>
-                  <button onClick={() => navigator.clipboard.writeText(q)} className="text-blue-500 hover:text-blue-700 p-1" title="Copy question">
+                  <button onClick={() => navigator.clipboard.writeText(q)} className="text-blue-500 hover:text-blue-700 p-1" title="Copy question" aria-label={`Copy question: ${q}`}>
                     <Copy size={18} />
                   </button>
                 </div>
@@ -357,13 +357,15 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
-        <select value={tone} onChange={e => setTone(e.target.value)} className="w-full sm:w-auto p-2 border rounded-[var(--radius)]">
+        <label htmlFor="proposal-tone" className="sr-only">Tone</label>
+        <select id="proposal-tone" value={tone} onChange={e => setTone(e.target.value)} className="w-full sm:w-auto p-2 border rounded-[var(--radius)]">
           <option value="professional">Professional</option>
           <option value="friendly">Friendly</option>
           <option value="confident">Confident</option>
           <option value="concise">Concise</option>
         </select>
-        <select value={length} onChange={e => setLength(e.target.value as 'short' | 'medium' | 'long')} className="w-full sm:w-auto p-2 border rounded-[var(--radius)]">
+        <label htmlFor="proposal-length" className="sr-only">Length</label>
+        <select id="proposal-length" value={length} onChange={e => setLength(e.target.value as 'short' | 'medium' | 'long')} className="w-full sm:w-auto p-2 border rounded-[var(--radius)]">
           <option value="short">Short</option>
           <option value="medium">Medium</option>
           <option value="long">Long</option>
@@ -381,7 +383,7 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
 
       {/* Error box */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-[var(--radius)] flex items-center justify-between gap-4 text-red-700">
+        <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-[var(--radius)] flex items-center justify-between gap-4 text-red-700">
           <div className="flex items-center gap-2 min-w-0">
             <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-600" />
             <span className="text-sm font-medium">{error}</span>
@@ -397,7 +399,9 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
 
       {/* Editable textarea */}
       <div className="relative">
+        <label htmlFor="proposal-text" className="sr-only">Proposal text</label>
         <textarea
+          id="proposal-text"
           value={text}
           onChange={e => setText(e.target.value)}
           className="w-full h-64 p-4 border rounded-[var(--radius)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none"
@@ -409,7 +413,7 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-4 items-center">
-        <button onClick={copyToClipboard} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-[var(--radius)] flex items-center gap-2">
+        <button onClick={copyToClipboard} aria-label={copied ? 'Proposal copied' : 'Copy proposal'} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-[var(--radius)] flex items-center gap-2">
           {copied ? <Check size={16} /> : <Copy size={16} />}
           {copied ? 'Copied' : 'Copy'}
         </button>
@@ -431,7 +435,7 @@ export default function ProposalEditor({ proposalId, initialText, analysis, init
 
       {/* Score Error Banner */}
       {scoreError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-[var(--radius)] flex items-center justify-between gap-4 text-red-700">
+        <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-[var(--radius)] flex items-center justify-between gap-4 text-red-700">
           <div className="flex items-center gap-2 min-w-0">
             <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-600" />
             <span className="text-sm font-medium">{scoreError}</span>
