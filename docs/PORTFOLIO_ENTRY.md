@@ -62,6 +62,27 @@ TODO(me) add the Lighthouse report screenshot(s).
 
 **WAVE / axe output:** TODO(me) run WAVE or axe DevTools on the proposal page and paste the summary (errors, contrast errors, alerts) here, with a screenshot.
 
+**axe DevTools (WCAG 2.1 AA) — production scan, before this pass**
+
+| Page | Failures |
+|---|---|
+| `/dashboard` | 15 serious (color contrast) |
+| `/profile` | 2 (visible labels not programmatically associated) |
+| `/settings` | 1 serious (color contrast) |
+| `/proposals/new` | 1 critical (Platform select had no accessible name) |
+| `/proposals/[id]` | 3 (textarea, tone select, length select unlabeled) |
+| `/login` | 1 serious (link distinguishable by color only) |
+
+**After (re-scan):** TODO(me)
+
+**Fixes in this pass**
+
+- **Dashboard `(n=1)` sample notes:** `text-amber-500` (#fe9a00, 2.13:1 on white) → `text-amber-700` (#b45309, 5.05:1). Other 12px gray-400 copy on the dashboard moved to `text-gray-600`.
+- **Settings “Read only” badge:** `text-[var(--muted)]` (#6b7280) on `bg-gray-200` (3.9:1) → `text-gray-700` on `bg-gray-200` (~8.5:1). `--muted` in `globals.css` darkened from `#6b7280` to `#4b5563` so muted text on white / gray-50 / gray-100 / gray-200 meets 4.5:1.
+- **Profile, new proposal, settings, login, signup:** every visible input, select and textarea is associated with `<label htmlFor>` + matching `id` (`useId()` so ids do not collide). Tests find Full Name, Tone, and Platform with `getByLabelText`.
+- **Proposal page controls:** tone select, length select, and proposal textarea already had sr-only labels; tests in `ProposalEditor.test.tsx` still find them with `getByLabelText`.
+- **Login / signup inline links:** “Sign up” and “Log in” always use `underline underline-offset-2` (not color-only). The same pattern was applied to other `hover:underline` text links in `src/`.
+
 **One concrete fix: labels on the proposal page controls**
 
 - **Before:** the tone `<select>`, length `<select>` and proposal `<textarea>` had no label, so a screen reader announced them as "combo box" and "edit text" with no name. Automated checkers report this as a missing form label.
