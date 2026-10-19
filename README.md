@@ -5,7 +5,7 @@
 ProposalAI is an AI-powered proposal assistant for freelancers. Set up your profile once, paste a job description, and get a job analysis, a tailored proposal, an honest score with feedback, and win-rate tracking.
 
 **Live demo:** https://capstone-flyrank-five.vercel.app
-**Repository:** https://github.com/Rabia-1275capstone-flyrank
+**Repository:** https://github.com/Rabia-1275/capstone-flyrank
 
 Built as the capstone project for the FlyRank frontend AI engineering internship.
 
@@ -232,7 +232,7 @@ The full schema for a **fresh** Supabase project is in [`supabase/schema.sql`](s
 ## Repository structure
 
 ```
-capstone-project/
+capstone-flyrank/
 ├── capstone-flyrank-next/     # Next.js application
 │   └── src/
 │       ├── app/               # pages and API routes
