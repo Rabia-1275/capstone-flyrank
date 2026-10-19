@@ -31,7 +31,7 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
           <p className="text-red-700 font-medium">Failed to load dashboard data</p>
-          <p className="text-sm text-red-500 mt-1">{error.message}</p>
+          <p className="text-sm text-red-700 mt-1">{error.message}</p>
         </div>
       </div>
     )

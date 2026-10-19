@@ -32,7 +32,7 @@ export default function GlobalError({
       </p>
 
       {error.digest && (
-        <p className="text-xs font-mono text-gray-400 mb-6 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded">
+        <p className="text-xs font-mono text-gray-700 mb-6 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded">
           Error ID: {error.digest}
         </p>
       )}

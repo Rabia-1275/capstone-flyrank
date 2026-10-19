@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle, AlertTriangle, HelpCircle, DollarSign, Copy, Check } from 'lucide-react'
 
@@ -15,6 +15,9 @@ type Analysis = {
 }
 
 export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolean }) {
+  const fieldId = useId()
+  const platformId = `${fieldId}-platform`
+  const jobDescriptionId = `${fieldId}-job-description`
   const router = useRouter()
   const [platform, setPlatform] = useState('upwork')
   const [jobText, setJobText] = useState('')
@@ -68,8 +71,9 @@ export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolea
 
       <form onSubmit={handleAnalyze} className="bg-[var(--background)] p-6 rounded-[var(--radius)] border border-gray-200 shadow-sm flex flex-col gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1 text-[var(--foreground)]">Platform</label>
+          <label htmlFor={platformId} className="block text-sm font-medium mb-1 text-[var(--foreground)]">Platform</label>
           <select 
+            id={platformId}
             value={platform} 
             onChange={(e) => setPlatform(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded-[var(--radius)]"
@@ -82,13 +86,14 @@ export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolea
         </div>
 
         <div>
-          <label className="flex justify-between text-sm font-medium mb-1 text-[var(--foreground)]">
+          <label htmlFor={jobDescriptionId} className="flex justify-between text-sm font-medium mb-1 text-[var(--foreground)]">
             <span>Job Description</span>
-            <span className={`${jobText.length > 8000 ? 'text-red-500' : 'text-[var(--muted)]'}`}>
+            <span className={`${jobText.length > 8000 ? 'text-red-700' : 'text-[var(--muted)]'}`}>
               {jobText.length}/8000
             </span>
           </label>
           <textarea 
+            id={jobDescriptionId}
             value={jobText} 
             onChange={(e) => setJobText(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded-[var(--radius)] h-48"
@@ -99,7 +104,7 @@ export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolea
         </div>
 
         {error && (
-          <div className="p-3 bg-red-100 text-red-700 rounded-[var(--radius)] text-sm">
+          <div role="alert" className="p-3 bg-red-100 text-red-700 rounded-[var(--radius)] text-sm">
             {error}
           </div>
         )}
@@ -130,7 +135,7 @@ export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolea
                 <ul className="list-disc pl-5 text-[var(--foreground)]">
                   {analysis.skill_match.matched.length > 0 ? analysis.skill_match.matched.map((skill, i) => (
                     <li key={i}>{skill}</li>
-                  )) : <li className="text-gray-400 italic">None</li>}
+                  )) : <li className="text-gray-600 italic">None</li>}
                 </ul>
               </div>
               <div>
@@ -138,7 +143,7 @@ export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolea
                 <ul className="list-disc pl-5 text-red-600">
                   {analysis.skill_match.gaps.length > 0 ? analysis.skill_match.gaps.map((skill, i) => (
                     <li key={i}>{skill}</li>
-                  )) : <li className="text-gray-400 italic">None</li>}
+                  )) : <li className="text-gray-600 italic">None</li>}
                 </ul>
               </div>
             </div>
@@ -169,6 +174,7 @@ export default function NewProposalForm({ emptyProfile }: { emptyProfile: boolea
                     onClick={() => copyToClipboard(q, i)}
                     className="text-blue-500 hover:text-blue-700 p-1"
                     title="Copy question"
+                    aria-label={`Copy question: ${q}`}
                   >
                     {copiedQuestion === i ? <Check size={18} /> : <Copy size={18} />}
                   </button>
