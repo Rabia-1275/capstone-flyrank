@@ -1,43 +1,54 @@
+Output of `npm run test:coverage` in capstone-flyrank-next (Vitest v5.0.4, coverage with v8).
+Run on 2026-10-18 at 12:52 (local time). Copied from the terminal.
+The React act(...) warnings printed to stderr during the ProposalEditor tests are omitted here.
 
 > capstone-flyrank-next@0.1.0 test:coverage
 > vitest run --coverage
 
-
  RUN  v5.0.4 U:/FlyRank/capstone-project/capstone-flyrank-next
       Coverage enabled with v8
 
+ ✓ src/tests/components/ProposalEditor.test.tsx (11 tests) 2783ms
+ ✓ src/tests/components/ProfileForm.test.tsx (13 tests) 4228ms
+ ✓ src/tests/components/ProposalsList.test.tsx (6 tests) 1753ms
+ ✓ src/tests/components/NewProposalForm.test.tsx (10 tests) 2232ms
+ ✓ src/tests/components/ProposalStatusSelect.test.tsx (10 tests) 1249ms
+ ✓ src/tests/components/Navbar.test.tsx (15 tests) 959ms
+ ✓ src/tests/components/ProfileCompleteness.test.tsx (8 tests) 143ms
+ ✓ src/tests/lib/dashboard.test.ts (14 tests) 41ms
+stderr | src/tests/lib/usage.test.ts > checkAndRecordUsage – query error > fails open (returns allowed: true) when the DB query errors
+[AI Usage] Error querying quota: table not found
 
- Test Files  11 passed (11)
-      Tests  127 passed (127)
-   Start at  10:39:56
-   Duration  14.02s (tests 40%, environment 30%, setup 15%, import 9%, worker 6%, transform 1%)
+ ✓ src/tests/lib/usage.test.ts (7 tests) 45ms
+ ✓ src/tests/lib/format.test.ts (16 tests) 32ms
+ ✓ src/tests/components/DashboardContent.test.tsx (1 test) 144ms
+ ✓ src/tests/app/login.test.tsx (1 test) 137ms
+ ✓ src/tests/lib/ai.schemas.test.ts (19 tests) 67ms
+
+ Test Files  13 passed (13)
+      Tests  131 passed (131)
+   Start at  12:52:34
+   Duration  83.71s (environment 61%, setup 17%, import 11%, tests 9%, worker 2%)
 
  % Coverage report from v8
--------------------|---------|----------|---------|---------|-------------------
-File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
--------------------|---------|----------|---------|---------|-------------------
-All files          |   58.89 |    42.99 |   48.52 |   60.09 |                   
- components        |   50.17 |    37.68 |   37.68 |   52.29 |                   
-  ...rdContent.tsx |       0 |        0 |       0 |       0 | 17-254            
-  ...Dashboard.tsx |       0 |        0 |       0 |       0 | 4-96              
-  Navbar.tsx       |     100 |      100 |     100 |     100 |                   
-  ...posalForm.tsx |   72.97 |    70.96 |   41.66 |   77.14 | ...42-154,171-197 
-  ...pleteness.tsx |     100 |    93.75 |     100 |     100 | 17                
-  ProfileForm.tsx  |   84.09 |    72.22 |   92.85 |   83.33 | 59-70             
-  ...tsSection.tsx |       0 |        0 |       0 |       0 | 4-137             
-  ...salEditor.tsx |    58.6 |    39.66 |   35.89 |   62.96 | ...36-392,424-616 
-  ...tusSelect.tsx |   92.85 |    61.53 |      75 |   92.85 | 41-42             
-  ...osalsList.tsx |   56.25 |    53.12 |   53.84 |   57.94 | ...96-398,477-543 
-  SettingsForm.tsx |       0 |        0 |       0 |       0 | 6-311             
- lib               |   96.94 |    84.28 |   96.77 |   96.42 |                   
-  dashboard.ts     |   97.29 |    87.09 |   96.15 |   96.49 | 55,86             
-  format.ts        |     100 |      100 |     100 |     100 |                   
-  usage.ts         |   94.73 |    70.83 |     100 |   94.73 | 55,126            
--------------------|---------|----------|---------|---------|-------------------
-
-=============================== Coverage summary ===============================
-Statements   : 58.89% ( 414/703 )
-Branches     : 42.99% ( 264/614 )
-Functions    : 48.52% ( 82/169 )
-Lines        : 60.09% ( 381/634 )
-================================================================================
+---------------------------|---------|----------|---------|---------|--------------------
+File                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+---------------------------|---------|----------|---------|---------|--------------------
+All files                  |   61.64 |    46.74 |   53.84 |   62.96 |
+ components                |   53.75 |    41.91 |    44.2 |   55.97 |
+  DashboardContent.tsx     |   55.88 |    56.09 |   52.94 |   64.28 | ...118-119,219,251
+  HealthDashboard.tsx      |       0 |        0 |       0 |       0 | 4-96
+  Navbar.tsx               |     100 |      100 |     100 |     100 |
+  NewProposalForm.tsx      |      75 |    70.96 |   41.66 |   78.94 | ...145-157,174-200
+  ProfileCompleteness.tsx  |     100 |    93.75 |     100 |     100 | 17
+  ProfileForm.tsx          |      86 |    72.22 |   92.85 |   85.41 | 65-76
+  ProjectsSection.tsx      |       0 |        0 |       0 |       0 | 4-137
+  ProposalEditor.tsx       |    58.6 |    39.66 |   35.89 |   62.96 | ...336-392,424-616
+  ProposalStatusSelect.tsx |   92.85 |    61.53 |      75 |   92.85 | 41-42
+  ProposalsList.tsx        |   56.25 |    53.12 |   53.84 |   57.94 | ...396-398,477-543
+  SettingsForm.tsx         |       0 |        0 |       0 |       0 | 6-316
+ lib                       |   96.94 |    84.28 |   96.77 |   96.42 |
+  dashboard.ts             |   97.29 |    87.09 |   96.15 |   96.49 | 55,86
+  format.ts                |     100 |      100 |     100 |     100 |
+  usage.ts                 |   94.73 |    70.83 |     100 |   94.73 | 55,126
+---------------------------|---------|----------|---------|---------|--------------------

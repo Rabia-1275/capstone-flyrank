@@ -67,6 +67,7 @@ Freelancers spend hours writing proposals that end up sounding generic, and clie
 | AI | [Groq](https://groq.com/) API (free tier) through `groq-sdk` |
 | Validation | [Zod](https://zod.dev/) 4 |
 | Icons | [Lucide](https://lucide.dev/) |
+| Testing | [Vitest](https://vitest.dev/) and React Testing Library |
 | Hosting | [Vercel](https://vercel.com/) |
 
 ---
@@ -209,6 +210,12 @@ These rules are instructions to a model, not guarantees. The unsupported-claims 
 
 ---
 
+## Accessibility
+
+The interface was audited with axe DevTools (WCAG 2.1 AA) on the production site, and the failures it found were fixed in code: text contrast, labels that were not linked to their inputs, and links that were distinguished by color only. The audit results, the before and after scans, and the exact fixes are written up in [`docs/PORTFOLIO_ENTRY.md`](docs/PORTFOLIO_ENTRY.md#5-lighthouse-and-accessibility).
+
+---
+
 ## Database
 
 The full schema for a **fresh** Supabase project is in [`supabase/schema.sql`](supabase/schema.sql). Incremental changes are in [`supabase/migrations/`](supabase/migrations/).
@@ -231,6 +238,7 @@ capstone-project/
 │       ├── app/               # pages and API routes
 │       ├── components/        # UI components (editor, forms, lists)
 │       ├── lib/               # AI calls and usage caps
+│       ├── tests/             # Vitest tests (components, lib, app)
 │       └── utils/supabase/    # Supabase clients and session handling
 ├── supabase/                  # schema.sql and migrations/
 ├── docs/                      # deployment checklist, portfolio entry, test coverage output, screenshots
@@ -244,7 +252,7 @@ capstone-project/
 
 ### Prerequisites
 
-- Node.js 20 or newer
+- Node.js 20.19 or newer (or 22.12 or newer)
 - A [Supabase](https://supabase.com/) project (free tier works)
 - A [Groq](https://console.groq.com/) API key (free tier works)
 
@@ -297,17 +305,33 @@ npm run test:watch      # re-run on file changes
 npm run test:coverage   # run once with a v8 coverage report (text, html in coverage/, lcov)
 ```
 
-The component tests render the real components with Supabase, server actions and `fetch` mocked. The `src/lib` tests cover the Zod schemas, dashboard aggregation, usage caps and formatting. No test calls Supabase or Groq.
+The component tests render the real components with Supabase, server actions and `fetch` mocked. The `src/lib` tests cover the Zod schemas, dashboard aggregation, usage caps and formatting. No test calls Supabase or Groq. On a slow machine the first run can take a couple of minutes because jsdom is started for each test file; the config limits parallel workers to keep it stable.
 
-Coverage from the last `npm run test:coverage` run (11 test files, 127 tests passed). Full output: [`docs/test-coverage-output.txt`](docs/test-coverage-output.txt).
+Result of the last `npm run test:coverage` run: **13 test files, 131 tests, all passing**. The full terminal output is saved in [`docs/test-coverage-output.txt`](docs/test-coverage-output.txt).
 
 | Scope | % Stmts | % Branch | % Funcs | % Lines |
 |---|---|---|---|---|
-| All files | 58.89 | 42.99 | 48.52 | 60.09 |
-| `src/components` | 50.17 | 37.68 | 37.68 | 52.29 |
+| All files | 61.64 | 46.74 | 53.84 | 62.96 |
+| `src/components` | 53.75 | 41.91 | 44.20 | 55.97 |
 | `src/lib` | 96.94 | 84.28 | 96.77 | 96.42 |
 
-7 of the 11 components have tests: Navbar, NewProposalForm, ProfileCompleteness, ProfileForm, ProposalEditor, ProposalStatusSelect and ProposalsList. DashboardContent, HealthDashboard, ProjectsSection and SettingsForm have no tests yet. `src/lib/ai.ts` is excluded from coverage because it calls the Groq API; its Zod schemas are imported and tested directly.
+**Component coverage: 8 of 11 components (73%) have tests.**
+
+| Component | % Stmts | Tested |
+|---|---|---|
+| Navbar | 100 | yes |
+| ProfileCompleteness | 100 | yes |
+| ProposalStatusSelect | 92.85 | yes |
+| ProfileForm | 86 | yes |
+| NewProposalForm | 75 | yes |
+| ProposalEditor | 58.6 | yes |
+| ProposalsList | 56.25 | yes |
+| DashboardContent | 55.88 | yes |
+| HealthDashboard | 0 | no |
+| ProjectsSection | 0 | no |
+| SettingsForm | 0 | no |
+
+There is also a small test for the login page that checks the "Sign up" link stays underlined (accessibility: links must not rely on color alone). `src/lib/ai.ts` is excluded from coverage because it calls the Groq API; its Zod schemas are imported and tested directly.
 
 ---
 
@@ -333,7 +357,7 @@ A ready-to-copy template is in [`capstone-flyrank-next/.env.example`](capstone-f
 
 1. Push the repository to GitHub.
 2. Import it in Vercel and set **Root Directory** to `capstone-flyrank-next`.
-3. Add the environment variables from the table above. Do not add a `NEXT_PUBLIC_` prefix to the Groq key.
+3. Add the environment variables from the table above for **both Production and Preview**. Do not add a `NEXT_PUBLIC_` prefix to the Groq key.
 4. Deploy. Vercel detects Next.js automatically.
 5. In Supabase, set the Site URL and Redirect URLs to the deployed URL.
 6. Open `/health` on the deployed site and confirm that Supabase is reachable and the AI service is configured.
@@ -376,6 +400,7 @@ The full pre-deploy, deploy and post-deploy steps are in [`docs/DEPLOYMENT_CHECK
 - **The "profile facts only" rule is a prompt instruction, not a guarantee.** The unsupported-claims check is also an AI model, so it can miss things. Always read a generated proposal before sending it.
 - **Estimates are not market data.** Price and timeline suggestions are rough signals, and the score is feedback rather than a prediction.
 - **Small samples.** Win and reply rates based on a handful of proposals are not statistically meaningful. The dashboard shows the sample size next to every rate.
+- **Test coverage is partial.** 8 of 11 components have tests. HealthDashboard, ProjectsSection and SettingsForm do not, and the end-to-end flow (analyze, generate, score) is not covered by automated tests.
 - **Single user per account.** There is no sharing or collaboration between accounts.
 - **English prompts.** Prompts are written in English, so non-English job posts may give weaker results.
 

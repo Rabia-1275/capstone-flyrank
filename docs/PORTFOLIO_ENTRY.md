@@ -2,56 +2,56 @@
 
 ## 1. Project brief
 
-ProposalAI helps freelancers write stronger proposals in less time. On platforms like Upwork and Fiverr, writing a tailored proposal for every job takes so long that many freelancers send generic copy-paste messages that clients ignore. ProposalAI analyses a pasted job description against the freelancer's saved profile and projects, drafts a platform-specific proposal that uses only real skills and work, scores it honestly (including flagging claims the profile does not support), and tracks outcomes in a win-rate dashboard.
+ProposalAI helps freelancers write stronger proposals in less time. On platforms like Upwork and Fiverr, writing a tailored proposal for every job takes so long that many freelancers send generic copy-paste messages that clients ignore. ProposalAI analyses a pasted job description against the freelancer's saved profile and projects, drafts a platform-specific proposal that uses only real skills and work, scores it honestly (including flagging claims the profile does not support), and tracks outcomes in a win-rate dashboard. It is built for freelancers, and I chose it because I am one: I wanted a tool where the AI solves a real part of my workflow (analysis, drafting and review) rather than being a chat box.
 
 ## 2. Live app
 
 **URL:** https://capstone-flyrank-five.vercel.app
 
-**WCAG 2.1 AA note.** An accessibility pass over the components fixed these issues:
+The app is deployed on Vercel from the `main` branch. It is fully functional (sign up, profile, analyze, generate, score, history, dashboard) and works without any mock data.
 
-- The tone and length `<select>` elements and the proposal textarea on the proposal page had no label. They now have screen-reader-only `<label htmlFor>` elements ("Tone", "Length", "Proposal text"). (1.3.1 Info and Relationships, 4.1.2 Name, Role, Value)
-- The AI error box (with Retry) and the score error box now have `role="alert"`, so screen readers announce failures. The analyze error message on the new-proposal form has it too. (4.1.3 Status Messages)
-- The icon-only "copy question" buttons only had a `title`. They now have an `aria-label` that includes the question. The main copy button has an `aria-label` as well. (4.1.2)
-- The "×" buttons that remove a skill or portfolio link announced only "times". They now read "Remove skill React", "Remove link https://...". (2.4.6, 4.1.2)
-- Visible labels that were not linked to their inputs are now linked with `htmlFor`/`id`: Platform and Job Description (new proposal), Full Name, Headline, Tone, Skills and Portfolio Links (profile), Title, Description and Link (projects), Account Email (settings). (1.3.1, 3.3.2 Labels or Instructions)
-- No `<img>` elements without `alt` were found. Icons come from Lucide, which renders them with `aria-hidden="true"`.
+**Accessibility (WCAG 2.1 AA).** I ran axe DevTools on the production site, found failures on 7 of the 9 pages I scanned, and fixed all of them in code. The scan results and fixes are in [section 5](#5-lighthouse-and-accessibility). In short:
 
-This is a code-level audit, not a full WCAG conformance audit. Automated and manual results go in section 5.
+- **Color contrast:** low-contrast text (an amber note at 2.13:1, a gray badge at 3.9:1) was darkened to meet 4.5:1.
+- **Labels:** visible labels that were not linked to their inputs are now linked with `htmlFor` and `id`, and the tone, length and proposal controls on the proposal page have accessible names.
+- **Links:** inline links that were told apart only by color are now underlined.
+- **Announcements:** AI error boxes use `role="alert"` so screen readers announce failures, and icon-only buttons have `aria-label`s.
 
 ## 3. Repository and README
 
 - **Repository:** https://github.com/Rabia-1275/capstone-flyrank
 - **README:** https://github.com/Rabia-1275/capstone-flyrank#readme
+  - [Local setup](https://github.com/Rabia-1275/capstone-flyrank#local-setup) (clone, `npm install`, env file, `npm run dev`)
   - [Architecture and data flow](https://github.com/Rabia-1275/capstone-flyrank#architecture-and-data-flow)
   - [AI design decisions](https://github.com/Rabia-1275/capstone-flyrank#ai-design-decisions), including [the prompts](https://github.com/Rabia-1275/capstone-flyrank#the-prompts) and [why they are written this way](https://github.com/Rabia-1275/capstone-flyrank#why-the-prompts-are-written-this-way)
-  - [Local setup](https://github.com/Rabia-1275/capstone-flyrank#local-setup)
   - [Testing](https://github.com/Rabia-1275/capstone-flyrank#testing)
   - [Rollback plan](https://github.com/Rabia-1275/capstone-flyrank#rollback-plan)
   - [Known limitations](https://github.com/Rabia-1275/capstone-flyrank#known-limitations)
 
 ## 4. Testing evidence
 
-Vitest and React Testing Library. Numbers below are copied from the last `npm run test:coverage` run, saved in full in [`docs/test-coverage-output.txt`](test-coverage-output.txt).
+Vitest and React Testing Library. The numbers below are copied from the last `npm run test:coverage` run, saved in full in [`test-coverage-output.txt`](test-coverage-output.txt).
 
 ```text
- Test Files  11 passed (11)
-      Tests  127 passed (127)
+ Test Files  13 passed (13)
+      Tests  131 passed (131)
 ```
 
 | Scope | % Stmts | % Branch | % Funcs | % Lines |
 |---|---|---|---|---|
-| All files | 58.89 | 42.99 | 48.52 | 60.09 |
-| `src/components` | 50.17 | 37.68 | 37.68 | 52.29 |
+| All files | 61.64 | 46.74 | 53.84 | 62.96 |
+| `src/components` | 53.75 | 41.91 | 44.20 | 55.97 |
 | `src/lib` | 96.94 | 84.28 | 96.77 | 96.42 |
 
-Components with tests: 7 of 11 (Navbar, NewProposalForm, ProfileCompleteness, ProfileForm, ProposalEditor, ProposalStatusSelect, ProposalsList). Not yet tested: DashboardContent, HealthDashboard, ProjectsSection, SettingsForm. `src/lib/ai.ts` is excluded from coverage because it calls the Groq API; its Zod schemas are tested directly.
+**Components with tests: 8 of 11 (73%)**: Navbar, NewProposalForm, ProfileCompleteness, ProfileForm, ProposalEditor, ProposalStatusSelect, ProposalsList and DashboardContent. Not yet tested: HealthDashboard, ProjectsSection and SettingsForm. `src/lib/ai.ts` is excluded from coverage because it calls the Groq API; its Zod schemas are tested directly.
 
-**Screenshot:** TODO(me) add a screenshot of the terminal coverage table and link it here.
+What the tests check (examples): the editor shows a spinner only while generating; an error box with Retry appears on a failed response and on an empty stream; autosave never fires for empty text or while generating (I confirmed that test fails when the guard is removed); the skills input adds on Enter, rejects duplicates and stops at 20; the new-proposal form needs 50 characters and shows API errors; the status select updates optimistically.
+
+**Screenshot of the terminal coverage table:** TODO(me) save it as `docs/screenshots/coverage-table.png` and link it here.
 
 ## 5. Lighthouse and accessibility
 
-**Lighthouse (production URL):**
+### Lighthouse (production URL, mobile)
 
 | Page | Performance | Accessibility | Best Practices | SEO |
 |---|---|---|---|---|
@@ -60,40 +60,63 @@ Components with tests: 7 of 11 (Navbar, NewProposalForm, ProfileCompleteness, Pr
 
 TODO(me) add the Lighthouse report screenshot(s).
 
-**WAVE / axe output:** TODO(me) run WAVE or axe DevTools on the proposal page and paste the summary (errors, contrast errors, alerts) here, with a screenshot.
+### axe DevTools (WCAG 2.1 AA): before
 
-**axe DevTools (WCAG 2.1 AA) — production scan, before this pass**
+Scanned on the production site before the fixes, with the free axe DevTools extension (axe-core 4.13.0), while logged in for the app pages.
 
-| Page | Failures |
+| Page | Issues | Cause |
+|---|---|---|
+| `/dashboard` | 15 serious | Color contrast: amber `(n=1)` note |
+| `/settings` | 1 serious | Color contrast: "Read only" badge |
+| `/profile` | 2 | Full Name input and Tone select not linked to their visible labels |
+| `/proposals/new` | 1 critical | Platform select had no accessible name |
+| `/proposals/[id]` | 3 | Proposal textarea, tone select and length select had no labels |
+| `/login` | 1 serious | "Sign up" link distinguished by color only |
+| `/signup` | 1 serious | "Log in" link distinguished by color only |
+| `/`, `/health`, `/proposals` | 0 | none |
+
+Total: 24 issues from 5 root causes.
+
+### axe DevTools: after
+
+Re-scanned on production after the fixes were merged and deployed.
+
+| Page | Issues |
 |---|---|
-| `/dashboard` | 15 serious (color contrast) |
-| `/profile` | 2 (visible labels not programmatically associated) |
-| `/settings` | 1 serious (color contrast) |
-| `/proposals/new` | 1 critical (Platform select had no accessible name) |
-| `/proposals/[id]` | 3 (textarea, tone select, length select unlabeled) |
-| `/login` | 1 serious (link distinguishable by color only) |
+| `/` | TODO(me) |
+| `/health` | TODO(me) |
+| `/login` | TODO(me) |
+| `/signup` | TODO(me) |
+| `/dashboard` | TODO(me) |
+| `/profile` | TODO(me) |
+| `/settings` | TODO(me) |
+| `/proposals` | TODO(me) |
+| `/proposals/new` | TODO(me) |
+| `/proposals/[id]` | TODO(me) |
 
-**After (re-scan):** TODO(me)
+### WAVE
 
-**Fixes in this pass**
+TODO(me) run WAVE on the proposal page and paste the summary here (errors, contrast errors, alerts), with a screenshot.
 
-- **Dashboard `(n=1)` sample notes:** `text-amber-500` (#fe9a00, 2.13:1 on white) → `text-amber-700` (#b45309, 5.05:1). Other 12px gray-400 copy on the dashboard moved to `text-gray-600`.
-- **Settings “Read only” badge:** `text-[var(--muted)]` (#6b7280) on `bg-gray-200` (3.9:1) → `text-gray-700` on `bg-gray-200` (~8.5:1). `--muted` in `globals.css` darkened from `#6b7280` to `#4b5563` so muted text on white / gray-50 / gray-100 / gray-200 meets 4.5:1.
-- **Profile, new proposal, settings, login, signup:** every visible input, select and textarea is associated with `<label htmlFor>` + matching `id` (`useId()` so ids do not collide). Tests find Full Name, Tone, and Platform with `getByLabelText`.
-- **Proposal page controls:** tone select, length select, and proposal textarea already had sr-only labels; tests in `ProposalEditor.test.tsx` still find them with `getByLabelText`.
-- **Login / signup inline links:** “Sign up” and “Log in” always use `underline underline-offset-2` (not color-only). The same pattern was applied to other `hover:underline` text links in `src/`.
+### One concrete improvement based on the audit: text contrast
 
-**One concrete fix: labels on the proposal page controls**
+- **Finding:** axe reported 15 serious color-contrast failures on `/dashboard`. Every one was the small `(n=1)` sample-size note, which used `text-amber-500` (`#fe9a00`) on white: a contrast ratio of **2.13:1**, where WCAG AA requires 4.5:1 for text this small. The Settings "Read only" badge failed the same rule at 3.9:1 (`#6b7280` on `#e5e7eb`).
+- **Fix:** the note now uses `text-amber-700` (`#b45309`, about 5:1 on white). The shared muted color in `globals.css` was darkened from `#6b7280` to `#4b5563` (about 7.5:1 on white and 6:1 on gray-200), so all muted text and the "Read only" badge pass. Placeholder text was set to the same color. The visual design is otherwise unchanged.
+- **A test locks it in:** `DashboardContent.test.tsx` asserts that the sample-size note no longer uses `text-amber-500`.
+- **Before screenshot:** TODO(me) (`docs/screenshots/before-axe-dashboard.png`)
+- **After screenshot:** TODO(me) (`docs/screenshots/after-axe-dashboard.png`)
 
-- **Before:** the tone `<select>`, length `<select>` and proposal `<textarea>` had no label, so a screen reader announced them as "combo box" and "edit text" with no name. Automated checkers report this as a missing form label.
-- **After:** each control has an `id` and a matching screen-reader-only `<label htmlFor>` ("Tone", "Length", "Proposal text"). The visual design is unchanged. A test in `ProposalEditor.test.tsx` finds all three controls with `getByLabelText`.
-- **Before screenshot:** TODO(me)
-- **After screenshot:** TODO(me)
+### Other fixes from the same audit
+
+- **Labels:** every visible input, select and textarea is now linked to its `<label htmlFor>` with a matching `id` (made with `useId()` so ids do not collide): Platform and Job Description (new proposal), Full Name, Headline, Tone, Skills and Portfolio Links (profile), Title, Description and Link (projects), and the Settings fields. The tone, length and proposal-text controls on the proposal page have screen-reader-only labels. Tests find these controls with `getByLabelText`. (WCAG 1.3.1, 3.3.2, 4.1.2)
+- **Links:** the "Sign up" and "Log in" links are always underlined (`underline underline-offset-2`), not only on hover, so they do not rely on color. A small test covers the login page. (WCAG 1.4.1)
+- **Announcements:** the AI error box (with Retry), the score error box and the analyze error message have `role="alert"`. (WCAG 4.1.3)
+- **Names for icon-only controls:** the copy buttons have an `aria-label`, and the "x" buttons that remove a skill or link read "Remove skill React" instead of "times". (WCAG 4.1.2)
 
 ## 6. Deployment checklist, error states, rollback
 
-- **Deployment checklist:** [`docs/DEPLOYMENT_CHECKLIST.md`](DEPLOYMENT_CHECKLIST.md) (pre-deploy, deploy, post-deploy, rollback)
-- **Rollback plan:** [README, Rollback plan](https://github.com/Rabia-1275/capstone-flyrank#rollback-plan)
+- **Deployment checklist:** [`DEPLOYMENT_CHECKLIST.md`](DEPLOYMENT_CHECKLIST.md) (pre-deploy, deploy, post-deploy, rollback). TODO(me) reconcile it with the FE-11 template and note the production deployment and commit that was live before this release.
+- **Rollback plan:** [README, Rollback plan](https://github.com/Rabia-1275/capstone-flyrank#rollback-plan) (promote the previous Ready deployment in Vercel, or `git revert` the merge commit and push).
 
 Error-state screenshots:
 
@@ -105,3 +128,5 @@ Error-state screenshots:
 ## 7. Reflection
 
 ### TODO(me) write this myself
+
+One page, honest. Answer: what was hardest and why, what I would do differently next time, and one thing that surprised me.
